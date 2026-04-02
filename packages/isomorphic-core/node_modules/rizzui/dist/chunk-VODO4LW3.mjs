@@ -1,0 +1,1 @@
+var o={normal:"font-normal",medium:"font-medium",semibold:"font-semibold",bold:"font-bold"};export{o as a};
