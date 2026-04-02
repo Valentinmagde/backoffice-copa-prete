@@ -52,7 +52,7 @@ export default function ExecutiveDashboard({
       {/* <TotalProfitLoss /> */}
 
       {/* Tableau des dernières candidatures */}
-      <RecentCustomers />
+      {/* <RecentCustomers /> */}
     </div>
   );
 }
