@@ -28,9 +28,16 @@ const optionsPeriode = [
 ];
 
 const COULEURS = {
-  registrations: '#eab308', // Jaune pour les inscriptions
-  completed: '#3b82f6',     // Bleu pour profils complets
-  submitted: '#10b981',      // Vert pour soumis
+  registrations: '#eab308',
+  completed: '#3b82f6',
+  submitted: '#10b981',
+};
+
+// Noms français pour les légendes et tooltips
+const NOMS_FRANCAIS = {
+  registrations: 'Inscriptions',
+  completed: 'Profils complets',
+  submitted: 'Soumis',
 };
 
 export default function Forecast({ className }: { className?: string }) {
@@ -48,12 +55,17 @@ export default function Forecast({ className }: { className?: string }) {
     );
   }
 
-  const donneesGraphique = donneesTendance;
+  // Transformer les données pour avoir les noms en français
+  const donneesGraphique = donneesTendance.map(item => ({
+    ...item,
+    Inscriptions: item.registrations,
+    'Profils complets': item.completed,
+    Soumis: item.submitted,
+  }));
 
-  // Calculer les totaux
-  const totalInscriptions = donneesGraphique.reduce((sum, item) => sum + (item.registrations || 0), 0);
-  const totalProfilsComplets = donneesGraphique.reduce((sum, item) => sum + (item.completed || 0), 0);
-  const totalSoumis = donneesGraphique.reduce((sum, item) => sum + (item.submitted || 0), 0);
+  const totalInscriptions = donneesGraphique.reduce((sum, item) => sum + (item.Inscriptions || 0), 0);
+  const totalProfilsComplets = donneesGraphique.reduce((sum, item) => sum + (item['Profils complets'] || 0), 0);
+  const totalSoumis = donneesGraphique.reduce((sum, item) => sum + (item.Soumis || 0), 0);
 
   return (
     <WidgetCard
@@ -64,26 +76,19 @@ export default function Forecast({ className }: { className?: string }) {
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
             <div className="h-3 w-3 rounded-full" style={{ backgroundColor: COULEURS.registrations }} />
-            <span className="text-sm text-gray-600">Inscriptions: <strong className="text-gray-900">{totalInscriptions.toLocaleString()}</strong></span>
+            <span className="text-sm text-gray-600">Inscriptions: <strong className="text-gray-900">{totalInscriptions.toLocaleString('fr-FR')}</strong></span>
           </div>
           <div className="flex items-center gap-2">
             <div className="h-3 w-3 rounded-full" style={{ backgroundColor: COULEURS.completed }} />
-            <span className="text-sm text-gray-600">Profils complets: <strong className="text-gray-900">{totalProfilsComplets.toLocaleString()}</strong></span>
+            <span className="text-sm text-gray-600">Profils complets: <strong className="text-gray-900">{totalProfilsComplets.toLocaleString('fr-FR')}</strong></span>
           </div>
           <div className="flex items-center gap-2">
             <div className="h-3 w-3 rounded-full" style={{ backgroundColor: COULEURS.submitted }} />
-            <span className="text-sm text-gray-600">Soumis: <strong className="text-gray-900">{totalSoumis.toLocaleString()}</strong></span>
+            <span className="text-sm text-gray-600">Soumis: <strong className="text-gray-900">{totalSoumis.toLocaleString('fr-FR')}</strong></span>
           </div>
         </div>
       }
       action={
-        // <Select
-        //   options={optionsPeriode}
-        //   value={periode}
-        //   onChange={(e) => setPeriode(e.value)}
-        //   selectClassName="w-32"
-        //   inPortal={false}
-        // />
         <div className="flex items-center justify-between gap-5">
           <Legend className="hidden @2xl:flex @3xl:hidden @5xl:flex" />
           <DropdownAction
@@ -103,7 +108,6 @@ export default function Forecast({ className }: { className?: string }) {
           >
             <AreaChart
               data={donneesGraphique}
-              // margin={{ left: -10 }}
               className="[&_.recharts-cartesian-axis-tick-value]:fill-gray-500 rtl:[&_.recharts-cartesian-axis.yAxis]:-translate-x-12 [&_.recharts-cartesian-grid-vertical]:opacity-0"
             >
               <defs>
@@ -142,45 +146,46 @@ export default function Forecast({ className }: { className?: string }) {
                   return <CustomYAxisTick payload={pl} {...rest} />;
                 }}
               />
-              <Tooltip content={<CustomTooltip formattedNumber />} />
-              <Legend
-                verticalAlign="top"
-                height={36}
-                formatter={(value) => {
-                  const labels = {
-                    registrations: 'Inscriptions',
-                    completed: 'Profils complets',
-                    submitted: 'Soumis'
-                  };
-                  return labels[value as keyof typeof labels] || value;
+              <Tooltip 
+                content={<CustomTooltip formattedNumber />}
+                formatter={(value: number, name: string) => {
+                  // Utiliser les noms français directement
+                  return [value?.toLocaleString('fr-FR'), name];
                 }}
+                labelFormatter={(label) => label}
+              />
+              <Legend
+                verticalAlign="bottom"
+                align="center"
+                height={36}
+                wrapperStyle={{ paddingTop: '20px' }}
               />
               <Area
                 type="monotone"
-                dataKey="registrations"
+                dataKey="Inscriptions"
                 stroke={COULEURS.registrations}
                 strokeWidth={2}
                 fillOpacity={1}
                 fill="url(#gradientRegistrations)"
-                name="registrations"
+                name="Inscriptions"
               />
               <Area
                 type="monotone"
-                dataKey="completed"
+                dataKey="Profils complets"
                 stroke={COULEURS.completed}
                 strokeWidth={2}
                 fillOpacity={1}
                 fill="url(#gradientCompleted)"
-                name="completed"
+                name="Profils complets"
               />
               <Area
                 type="monotone"
-                dataKey="submitted"
+                dataKey="Soumis"
                 stroke={COULEURS.submitted}
                 strokeWidth={2}
                 fillOpacity={1}
                 fill="url(#gradientSubmitted)"
-                name="submitted"
+                name="Soumis"
               />
             </AreaChart>
           </ResponsiveContainer>
