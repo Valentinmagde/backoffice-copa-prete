@@ -1,4 +1,3 @@
-// app/shared/executive/active-users.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -45,15 +44,25 @@ export default function ActiveUsers({ className }: { className?: string }) {
     return () => clearTimeout(timer);
   }, []);
 
+  // if (regionsLoading || isLoading) {
+  //   return (
+  //     <WidgetCard
+  //       title="Inscriptions par province"
+  //       className={cn('relative grid grid-cols-1 place-content-between gap-3', className)}
+  //       titleClassName="font-semibold"
+  //     >
+  //       <div className="flex items-center justify-center h-96">
+  //         <Loader variant="spinner" size="lg" />
+  //       </div>
+  //     </WidgetCard>
+  //   );
+  // }
+
   if (regionsLoading || isLoading) {
     return (
-      <WidgetCard
-        title="Inscriptions par province"
-        className={cn('relative grid grid-cols-1 place-content-between gap-3', className)}
-        titleClassName="font-semibold"
-      >
-        <div className="flex items-center justify-center h-96">
-          <Loader variant="spinner" size="lg" />
+      <WidgetCard title="Analyse par genre et catégorie" className={className}>
+        <div className="h-96 flex items-center justify-center">
+          <div className="animate-pulse text-gray-400">Chargement...</div>
         </div>
       </WidgetCard>
     );
@@ -81,7 +90,7 @@ export default function ActiveUsers({ className }: { className?: string }) {
 
   return (
     <WidgetCard
-      title="Inscriptions par province"
+      title="Candidatures par province"
       className={cn('relative grid grid-cols-1 place-content-between gap-3', className)}
       titleClassName="font-semibold"
     >
@@ -107,7 +116,7 @@ export default function ActiveUsers({ className }: { className?: string }) {
             <Geographies geography={WORLD_GEO_URL}>
               {({ geographies }) =>
                 geographies
-                  .filter(geo => geo.properties.name === 'Burundi') // Filtrer uniquement le Burundi
+                  .filter(geo => geo.properties.name === 'Burundi')
                   .map((geo) => (
                     <Geography
                       key={geo.rsmKey}
@@ -184,7 +193,7 @@ export default function ActiveUsers({ className }: { className?: string }) {
           <div className="flex items-center gap-1">
             <Badge renderAsDot className="bg-blue-600" />
             <Text className="text-gray-500 dark:text-gray-600">
-              Total inscriptions
+              Total candidatures
               <Text
                 as="span"
                 className="ms-1 font-lexend font-medium text-gray-700"
@@ -199,19 +208,19 @@ export default function ActiveUsers({ className }: { className?: string }) {
         <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-2">
           <div className="flex items-center gap-1">
             <div className="h-3 w-3 rounded-full bg-gray-400" />
-            <Text className="text-xs text-gray-500">0 inscription</Text>
+            <Text className="text-xs text-gray-500">0 candidature</Text>
           </div>
           <div className="flex items-center gap-1">
             <div className="h-3 w-3 rounded-full bg-blue-400" />
-            <Text className="text-xs text-gray-500">1-4 inscriptions</Text>
+            <Text className="text-xs text-gray-500">1-4 candidatures</Text>
           </div>
           <div className="flex items-center gap-1">
             <div className="h-3 w-3 rounded-full bg-blue-600" />
-            <Text className="text-xs text-gray-500">5-14 inscriptions</Text>
+            <Text className="text-xs text-gray-500">5-14 candidatures</Text>
           </div>
           <div className="flex items-center gap-1">
             <div className="h-3 w-3 rounded-full bg-blue-800" />
-            <Text className="text-xs text-gray-500">15+ inscriptions</Text>
+            <Text className="text-xs text-gray-500">15+ candidatures</Text>
           </div>
         </div>
 

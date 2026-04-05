@@ -110,7 +110,7 @@ export default function MessagesDropdown({
       <Popover.Trigger>{children}</Popover.Trigger>
       <Popover.Content className="z-[9999] pb-6 pe-6 ps-0 pt-5 dark:bg-gray-100 [&>svg]:hidden [&>svg]:dark:fill-gray-100 sm:[&>svg]:inline-flex">
         {/* <MessagesList setIsOpen={setIsOpen} /> */}
-        <span className='p-4'>Aucune message disponible</span>
+        <span className='p-4'>Aucun message disponible</span>
       </Popover.Content>
     </Popover>
   );

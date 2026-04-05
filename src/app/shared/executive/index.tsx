@@ -10,6 +10,11 @@ import WebAnalytics from '@/app/shared/executive/web-analytics';
 import BiggestDeal from '@/app/shared/executive/biggest-deal';
 import RecentCustomers from '@/app/shared/executive/recent-customers';
 import TotalProfitLoss from '@/app/shared/executive/total-profit-loss';
+import DashboardFilters from './dashboard-filters';
+import GeographicAnalysis from './geographic-analysis';
+import SectorPerformance from './sector-performance';
+import CandidateDistribution from './candidate-distribution';
+import CompanyStatusAnalysis from './company-status-analysis';
 
 export default function ExecutiveDashboard({
   className,
@@ -23,14 +28,21 @@ export default function ExecutiveDashboard({
         className
       )}
     >
+      {/* Filters */}
+      {/* <DashboardFilters /> */}
+
       {/* Cartes KPI */}
       <StatsCards />
 
       {/* Ligne 1: Secteur et Région */}
       <div className="grid grid-cols-1 gap-5 @4xl:grid-cols-2 2xl:gap-x-6 2xl:gap-y-7 3xl:gap-8">
-        <SocialFollowers />
+        {/* <BiggestDeal /> */}
+        <CompanyStatusAnalysis />
         <ActiveUsers />
       </div>
+
+      {/* Analyse genre, statut d'entreprise et catégorie */}
+      {/* <MRRReport /> */}
 
       {/* Ligne 2: Évolution et Pipeline */}
       <div className="grid grid-cols-1 gap-5 @4xl:grid-cols-2 2xl:gap-x-6 2xl:gap-y-7 3xl:gap-8">
@@ -39,20 +51,32 @@ export default function ExecutiveDashboard({
         <BiggestDeal />
       </div>
 
+      <SocialFollowers />
+
+      {/* Forecast */}
+      <Forecast />
+
       {/* Analyse genre et catégorie */}
       {/* <MRRReport /> */}
 
       {/* Graphiques RevenueExpense et Forecast existants */}
       {/* <div className="grid grid-cols-1 gap-5 @4xl:grid-cols-2 2xl:gap-x-6 2xl:gap-y-7 3xl:gap-8">
         <RevenueExpense />
-        <Forecast />
       </div> */}
+
+      {/* <GeographicAnalysis />
+
+      <SectorPerformance />
+
+      <CandidateDistribution />
+
+      <TotalProfitLoss /> */}
 
       {/* Pipeline détaillé */}
       {/* <TotalProfitLoss /> */}
 
       {/* Tableau des dernières candidatures */}
-      {/* <RecentCustomers /> */}
+      <RecentCustomers />
     </div>
   );
 }

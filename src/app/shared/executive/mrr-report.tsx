@@ -45,7 +45,13 @@ export default function MRRReport({ className }: { className?: string }) {
   const donneesGenre = analyse?.genderData || [];
   const donneesCategorie = analyse?.categoryData || [];
 
-  // Calculer les totaux avec gestion des NaN
+  // Extraire les totaux pour l'affichage
+  const totalFemmes = donneesGenre.find(item => item.gender === 'Femmes' || item.gender === 'F')?.count || 0;
+  const totalHommes = donneesGenre.find(item => item.gender === 'Hommes' || item.gender === 'M')?.count || 0;
+  const totalRefugies = donneesCategorie.find(item => item.category === 'Réfugié' || item.category === 'REFUGEE')?.count || 0;
+  const totalBurundais = donneesCategorie.find(item => item.category === 'Burundais' || item.category === 'BURUNDIAN')?.count || 0;
+
+  // Calculer le total général
   const totalGenre = donneesGenre.reduce((sum, item) => {
     const val = item.count || 0;
     return sum + (isNaN(val) ? 0 : val);
@@ -93,7 +99,7 @@ export default function MRRReport({ className }: { className?: string }) {
 
   return (
     <WidgetCard
-      title="Analyse par genre et catégorie"
+      title="Analyse par genre et statut d'entrepreneur"
       titleClassName="font-normal sm:text-sm text-gray-500 mb-2.5 font-inter"
       className={className}
       description={
@@ -115,11 +121,12 @@ export default function MRRReport({ className }: { className?: string }) {
         </div>
       }
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+      <div className="grid grid-cols-2 md:grid-cols-2 gap-6 mt-4">
         {/* Graphique genre */}
         <div className='my-8 h-[300px]'>
-          <Text className="text-sm font-medium text-gray-600 mb-3">
-            Répartition par genre ({formaterValeur(totalGenre)})
+          <Text className="text-sm text-center font-medium text-gray-600 mb-3">
+            Répartition par genre
+            {/* ({formaterValeur(totalGenre)}) */}
           </Text>
           {donneesGenre.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
@@ -144,8 +151,9 @@ export default function MRRReport({ className }: { className?: string }) {
 
         {/* Graphique catégorie */}
         <div className='my-8 h-[300px]'>
-          <Text className="text-sm font-medium text-gray-600 mb-3">
-            Répartition par catégorie ({formaterValeur(totalCategorie)})
+          <Text className="text-sm text-center font-medium text-gray-600 mb-3">
+            Répartition par statut d'entrepreneur
+            {/* ({formaterValeur(totalCategorie)}) */}
           </Text>
           {donneesCategorie.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
@@ -166,6 +174,44 @@ export default function MRRReport({ className }: { className?: string }) {
               <Text className="text-gray-400 text-sm">Aucune donnée de catégorie</Text>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Tableau récapitulatif */}
+      <div>
+        <div className="mb-4 flex items-center justify-between border-b border-muted pb-4 font-medium">
+          <Text as="span" className="text-sm text-gray-600 dark:text-gray-700">
+            Total
+          </Text>
+         {/*  <Text as="span" className="font-bold text-lg">{formaterValeur(totalFemmes)}</Text> */}
+        </div>
+
+        {/* Détails par catégorie */}
+        <div className="grid grid-cols-4 gap-4">
+          <div className="space-y-2">
+            <Text className="text-xs text-gray-400">Femmes</Text>
+            <Text className="text-xl font-semibold text-pink-600">
+              {formaterValeur(totalFemmes)}
+            </Text>
+          </div>
+          <div className="space-y-2">
+            <Text className="text-xs text-gray-400">Hommes</Text>
+            <Text className="text-xl font-semibold text-green-600">
+              {formaterValeur(totalHommes)}
+            </Text>
+          </div>
+          <div className="space-y-2">
+            <Text className="text-xs text-gray-400">Réfugiés</Text>
+            <Text className="text-xl font-semibold text-amber-600">
+              {formaterValeur(totalRefugies)}
+            </Text>
+          </div>
+          <div className="space-y-2">
+            <Text className="text-xs text-gray-400">Burundais</Text>
+            <Text className="text-xl font-semibold text-blue-600">
+              {totalBurundais}
+            </Text>
+          </div>
         </div>
       </div>
     </WidgetCard>

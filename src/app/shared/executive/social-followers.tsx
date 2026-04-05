@@ -1,4 +1,3 @@
-// app/shared/executive/social-followers.tsx
 'use client';
 
 import { Text } from 'rizzui';
@@ -17,9 +16,6 @@ import { formatNumber } from '@core/utils/format-number';
 import { CustomYAxisTick } from '@core/components/charts/custom-yaxis-tick';
 import { useMedia } from '@core/hooks/use-media';
 import { useCandidatesBySector } from '@/lib/api/hooks/use-dashboard';
-
-// Supprimer l'import des icônes qui cause l'erreur
-// Ne pas utiliser d'icônes complexes
 
 export default function SocialFollowers({ className }: { className?: string }) {
   const isSM = useMedia('(max-width: 640px)', false);
@@ -46,24 +42,22 @@ export default function SocialFollowers({ className }: { className?: string }) {
     return 28;
   }
 
-  // Fonction pour formater les valeurs
   const formaterValeur = (valeur: number | undefined | null): string => {
     if (valeur === undefined || valeur === null || isNaN(valeur)) return '0';
     return valeur.toLocaleString();
   };
 
-  // Préparer les données pour le graphique
+  // Préparer les données avec sécurité
   const donneesGraphique = secteurs.map(secteur => ({
     secteur: secteur.sector === 'Non spécifié' ? 'Non spécifié' : secteur.sector,
-    total: secteur.total || 0,
-    femmes: secteur.women || 0,
-    hommes: secteur.men || 0,
-    refugies: secteur.refugees || 0,
-  }));
+    total: Math.max(0, secteur.total || 0),
+    femmes: Math.max(0, secteur.women || 0),
+    hommes: Math.max(0, secteur.men || 0),
+    refugies: Math.max(0, secteur.refugees || 0),
+  })).filter(s => s.total > 0); // Filtrer les secteurs vides
 
-  const totalCandidatures = secteurs.reduce((sum, s) => sum + (s.total || 0), 0);
+  const totalCandidatures = donneesGraphique.reduce((sum, s) => sum + (s.total || 0), 0);
 
-  // Données pour la légende (sans icônes)
   const legendes = [
     { nom: 'Total', couleur: '#3b82f6' },
     { nom: 'Femmes', couleur: '#ec489a' },
@@ -73,7 +67,7 @@ export default function SocialFollowers({ className }: { className?: string }) {
 
   return (
     <WidgetCard
-      title="Candidatures par secteur"
+      title="Candidatures par secteur d'activité"
       titleClassName="font-medium sm:text-lg text-gray-800 mb-2.5 font-inter"
       className={className}
     >
@@ -112,8 +106,8 @@ export default function SocialFollowers({ className }: { className?: string }) {
         </div>
       </div>
 
-      {/* Légende avec couleurs seulement - sans icônes */}
-      <div className="mb-4 flex flex-wrap items-center justify-center gap-4 pb-4 border-b border-muted">
+      {/* Légende */}
+      <div className="mb-4 flex flex-wrap items-center justify-center gap-4">
         {legendes.map((item) => (
           <div key={item.nom} className="flex items-center gap-2">
             <span
@@ -126,7 +120,7 @@ export default function SocialFollowers({ className }: { className?: string }) {
       </div>
 
       {/* Tableau récapitulatif */}
-      <div>
+      {/* <div>
         <div className="mb-4 flex items-center justify-between border-b border-muted pb-4 font-medium">
           <Text as="span" className="text-sm text-gray-600 dark:text-gray-700">
             Total candidatures
@@ -134,34 +128,33 @@ export default function SocialFollowers({ className }: { className?: string }) {
           <Text as="span" className="font-bold text-lg">{formaterValeur(totalCandidatures)}</Text>
         </div>
 
-        {/* Détails par catégorie */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Text className="text-xs text-gray-400">Femmes</Text>
             <Text className="text-xl font-semibold text-pink-600">
-              {formaterValeur(secteurs.reduce((sum, s) => sum + (s.women || 0), 0))}
+              {formaterValeur(donneesGraphique.reduce((sum, s) => sum + (s.femmes || 0), 0))}
             </Text>
           </div>
           <div className="space-y-2">
             <Text className="text-xs text-gray-400">Hommes</Text>
             <Text className="text-xl font-semibold text-green-600">
-              {formaterValeur(secteurs.reduce((sum, s) => sum + (s.men || 0), 0))}
+              {formaterValeur(donneesGraphique.reduce((sum, s) => sum + (s.hommes || 0), 0))}
             </Text>
           </div>
           <div className="space-y-2">
             <Text className="text-xs text-gray-400">Réfugiés</Text>
             <Text className="text-xl font-semibold text-amber-600">
-              {formaterValeur(secteurs.reduce((sum, s) => sum + (s.refugees || 0), 0))}
+              {formaterValeur(donneesGraphique.reduce((sum, s) => sum + (s.refugies || 0), 0))}
             </Text>
           </div>
           <div className="space-y-2">
-            <Text className="text-xs text-gray-400">Secteurs représentés</Text>
+            <Text className="text-xs text-gray-400">Secteurs</Text>
             <Text className="text-xl font-semibold text-blue-600">
-              {donneesGraphique.filter(s => s.total > 0).length}
+              {donneesGraphique.length}
             </Text>
           </div>
         </div>
-      </div>
+      </div> */}
     </WidgetCard>
   );
 }

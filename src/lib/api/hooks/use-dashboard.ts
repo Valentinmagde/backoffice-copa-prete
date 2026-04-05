@@ -99,3 +99,23 @@ export function useFullDashboardData() {
         }
     );
 }
+
+export function useCompanyStatusAnalysis() {
+    return useApiQuery<Array<{ status: string; count: number; percentage: number }>>(
+        ['dashboard', 'company-status'],
+        () => dashboardApi.getCompanyStatusAnalysis(),
+        {
+            staleTime: 10 * 60 * 1000,
+        }
+    );
+}
+
+export function useRegistrationTrendByPeriod(period: string = 'month') {
+    return useApiQuery<Array<{ label: string; registrations: number; completed: number; submitted: number }>>(
+        ['dashboard', 'trend', period],
+        () => dashboardApi.getRegistrationTrendByPeriod(period),
+        {
+            staleTime: 5 * 60 * 1000,
+        }
+    );
+}

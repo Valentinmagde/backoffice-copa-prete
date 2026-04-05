@@ -150,6 +150,14 @@ class DashboardApi {
     async getFullDashboardData(): Promise<FullDashboardData> {
         return apiClient.get('/dashboard/full');
     }
+
+    async getCompanyStatusAnalysis(): Promise<Array<{ status: string; count: number; percentage: number }>> {
+        return apiClient.get('/dashboard/company-status');
+    }
+
+    async getRegistrationTrendByPeriod(period: string): Promise<any> {
+        return apiClient.get(`/dashboard/trend/${period}`);
+    }
 }
 
 export const dashboardApi = new DashboardApi();

@@ -94,7 +94,7 @@ export default function MPMECandidaturesTable({
       <Table
         table={table}
         variant={variant}
-        // isLoading={isLoading}
+        isLoading={isLoading}
         classNames={{
           container: 'border border-muted rounded-md border-t-0',
           rowClassName: 'last:border-0',
