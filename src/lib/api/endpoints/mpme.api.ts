@@ -134,6 +134,7 @@ class MPMEApi {
       applicationCode: beneficiary.applicationCode || `CAN-${beneficiary.id}`,
       companyName: beneficiary?.company?.companyName || '--',
       province: beneficiary.user?.primaryAddress?.commune?.province?.name || '--',
+      commune: beneficiary.user?.primaryAddress?.commune?.name || '--',
       companyType: beneficiary.company?.companyType === 'formal' ? 'Formel' : beneficiary.company?.companyType === 'informal' ? 'Informel' : '--',
       legalStatus: this.mapLegalStatus(beneficiary.company?.legalStatus || beneficiary.company?.legalStatusOther),
       creationDate: beneficiary.company?.creationDate || '--',
