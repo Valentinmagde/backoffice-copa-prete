@@ -93,6 +93,7 @@ export default function Forecast({ className }: { className?: string }) {
           <Legend className="hidden @2xl:flex @3xl:hidden @5xl:flex" />
           <DropdownAction
             options={optionsPeriode}
+            defaultActive={periode}
             onChange={(e) => setPeriode(e)}
             dropdownClassName="!z-0"
           />

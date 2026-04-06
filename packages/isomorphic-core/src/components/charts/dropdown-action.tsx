@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Select, SelectOption, SelectProps } from "rizzui";
 import cn from "../../utils/class-names";
 import { PiCalendarBlank, PiCaretDownBold } from "react-icons/pi";
@@ -35,8 +35,33 @@ export default function DropdownAction({
   selectClassName,
   dropdownClassName,
   inPortal = true,
+  defaultActive,
 }: DropdownActionProps) {
-  const [viewType, setViewType] = useState(options[0]);
+  // const [viewType, setViewType] = useState(options[0]);
+  // function handleOnChange(data: Options) {
+  //   setViewType(data);
+  //   onChange && onChange(data.value);
+  // }
+
+  const getDefaultOption = () => {
+    if (defaultActive) {
+      const found = options.find(opt => opt.value === defaultActive);
+      if (found) return found;
+    }
+    return options[0];
+  };
+
+  const [viewType, setViewType] = useState(getDefaultOption());
+
+  // ✅ Mettre à jour quand defaultActive change
+  useEffect(() => {
+    const newOption = options.find(opt => opt.value === defaultActive);
+    if (newOption && newOption.value !== viewType.value) {
+      setViewType(newOption);
+      onChange?.(newOption.value);
+    }
+  }, [defaultActive, options]);
+
   function handleOnChange(data: Options) {
     setViewType(data);
     onChange && onChange(data.value);

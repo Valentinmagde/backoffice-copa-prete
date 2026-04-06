@@ -41,14 +41,15 @@ export default function SignInForm() {
 
       if (result?.error) {
         toast.error(result.error || "Adresse mail ou mot de passe incorrect");
+        setIsLoading(false);
         return;
       } else {
-        router.push('/');
+        // router.push('/');
+        window.location.href = '/';
       }
     } catch (error) {
       console.error('Erreur lors de la connexion:', error);
       toast.error('Erreur lors de la connexion');
-    } finally {
       setIsLoading(false);
     }
   };
