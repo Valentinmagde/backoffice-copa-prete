@@ -1,6 +1,6 @@
 'use client';
 
-import { Title, Select } from 'rizzui';
+import { Title } from 'rizzui';
 import cn from '@core/utils/class-names';
 import WidgetCard from '@core/components/cards/widget-card';
 import {
@@ -15,7 +15,7 @@ import {
 } from 'recharts';
 import { CustomTooltip } from '@core/components/charts/custom-tooltip';
 import { useMedia } from '@core/hooks/use-media';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { CustomYAxisTick } from '@core/components/charts/custom-yaxis-tick';
 import { formatNumber } from '@core/utils/format-number';
 import { useRegistrationTrendByPeriod } from '@/lib/api/hooks/use-dashboard';
@@ -23,7 +23,6 @@ import DropdownAction from '@core/components/charts/dropdown-action';
 
 const optionsPeriode = [
   { value: 'day', label: 'Par jour' },
-  { value: 'week', label: 'Par semaine' },
   { value: 'month', label: 'Par mois' },
 ];
 
@@ -33,19 +32,49 @@ const COULEURS = {
   submitted: '#10b981',
 };
 
-// Noms français pour les légendes et tooltips
-const NOMS_FRANCAIS = {
-  registrations: 'Inscriptions',
-  completed: 'Profils complets',
-  submitted: 'Soumis',
-};
+// Ordre correct des jours (lundi à dimanche)
+const ORDRE_JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
 export default function Forecast({ className }: { className?: string }) {
   const isTablet = useMedia('(max-width: 800px)', false);
   const [periode, setPeriode] = useState('month');
   const { data: donneesTendance, isLoading } = useRegistrationTrendByPeriod(periode);
 
-  if (isLoading || !donneesTendance) {
+  // Tous les hooks appelés avant tout return conditionnel
+  const donneesGraphique = useMemo(() => {
+    if (!donneesTendance || donneesTendance.length === 0) {
+      return [];
+    }
+
+    const transformed = donneesTendance.map(item => ({
+      ...item,
+      Inscriptions: item.registrations,
+      'Profils complets': item.completed,
+      Soumis: item.submitted,
+    }));
+
+    // Pour la période "day", trier par ordre des jours
+    if (periode === 'day') {
+      return transformed.sort((a, b) => {
+        return ORDRE_JOURS.indexOf(a.label) - ORDRE_JOURS.indexOf(b.label);
+      });
+    }
+    return transformed;
+  }, [donneesTendance, periode]);
+
+  const totalInscriptions = useMemo(() => {
+    return donneesGraphique.reduce((sum, item) => sum + (item.Inscriptions || 0), 0);
+  }, [donneesGraphique]);
+
+  const totalProfilsComplets = useMemo(() => {
+    return donneesGraphique.reduce((sum, item) => sum + (item['Profils complets'] || 0), 0);
+  }, [donneesGraphique]);
+
+  const totalSoumis = useMemo(() => {
+    return donneesGraphique.reduce((sum, item) => sum + (item.Soumis || 0), 0);
+  }, [donneesGraphique]);
+
+  if (isLoading) {
     return (
       <WidgetCard title="Évolution des inscriptions et candidatures" className={className}>
         <div className="h-96 flex items-center justify-center">
@@ -55,17 +84,15 @@ export default function Forecast({ className }: { className?: string }) {
     );
   }
 
-  // Transformer les données pour avoir les noms en français
-  const donneesGraphique = donneesTendance.map(item => ({
-    ...item,
-    Inscriptions: item.registrations,
-    'Profils complets': item.completed,
-    Soumis: item.submitted,
-  }));
-
-  const totalInscriptions = donneesGraphique.reduce((sum, item) => sum + (item.Inscriptions || 0), 0);
-  const totalProfilsComplets = donneesGraphique.reduce((sum, item) => sum + (item['Profils complets'] || 0), 0);
-  const totalSoumis = donneesGraphique.reduce((sum, item) => sum + (item.Soumis || 0), 0);
+  if (!donneesTendance || donneesTendance.length === 0) {
+    return (
+      <WidgetCard title="Évolution des inscriptions et candidatures" className={className}>
+        <div className="h-96 flex items-center justify-center">
+          <div className="text-gray-400">Aucune donnée disponible</div>
+        </div>
+      </WidgetCard>
+    );
+  }
 
   return (
     <WidgetCard
@@ -89,15 +116,12 @@ export default function Forecast({ className }: { className?: string }) {
         </div>
       }
       action={
-        <div className="flex items-center justify-between gap-5">
-          <Legend className="hidden @2xl:flex @3xl:hidden @5xl:flex" />
-          <DropdownAction
-            options={optionsPeriode}
-            defaultActive={periode}
-            onChange={(e) => setPeriode(e)}
-            dropdownClassName="!z-0"
-          />
-        </div>
+        <DropdownAction
+          options={optionsPeriode}
+          defaultActive={periode}
+          onChange={(e) => setPeriode(e)}
+          dropdownClassName="!z-0"
+        />
       }
     >
       <div className='custom-scrollbar overflow-x-auto'>
@@ -130,10 +154,7 @@ export default function Forecast({ className }: { className?: string }) {
                 dataKey="label"
                 axisLine={false}
                 tickLine={false}
-                angle={periode === 'day' ? -45 : 0}
-                textAnchor={periode === 'day' ? 'end' : 'middle'}
-                height={periode === 'day' ? 80 : 60}
-                interval={periode === 'day' ? 6 : 0}
+                height={60}
               />
               <YAxis
                 tickLine={false}
@@ -147,10 +168,9 @@ export default function Forecast({ className }: { className?: string }) {
                   return <CustomYAxisTick payload={pl} {...rest} />;
                 }}
               />
-              <Tooltip 
+              <Tooltip
                 content={<CustomTooltip formattedNumber />}
                 formatter={(value: number, name: string) => {
-                  // Utiliser les noms français directement
                   return [value?.toLocaleString('fr-FR'), name];
                 }}
                 labelFormatter={(label) => label}

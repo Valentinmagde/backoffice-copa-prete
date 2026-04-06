@@ -48,7 +48,7 @@ export default function MRRReport({ className }: { className?: string }) {
   // Extraire les totaux pour l'affichage
   const totalFemmes = donneesGenre.find(item => item.gender === 'Femmes' || item.gender === 'F')?.count || 0;
   const totalHommes = donneesGenre.find(item => item.gender === 'Hommes' || item.gender === 'M')?.count || 0;
-  const totalRefugies = donneesCategorie.find(item => item.category === 'Réfugié' || item.category === 'REFUGEE')?.count || 0;
+  const totalRefugies = donneesCategorie.find(item => item.category === 'Réfugiés' || item.category === 'REFUGEE')?.count || 0;
   const totalBurundais = donneesCategorie.find(item => item.category === 'Burundais' || item.category === 'BURUNDIAN')?.count || 0;
 
   // Calculer le total général
