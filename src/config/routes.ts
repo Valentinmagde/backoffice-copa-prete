@@ -21,6 +21,12 @@ export const routes = {
       create: '/mpme/candidatures/create',
     },
   },
+  cohorts: {
+    list: '/cohorts',
+    details: (id: number | string) => `/cohorts/${id}`,
+    edit: (id: number | string) => `/cohorts/${id}/edit`,
+    create: '/cohorts/create',
+  },
   settings: {
     rolesPermissions: '/settings/roles-permissions',
     profile: '/settings/profile',

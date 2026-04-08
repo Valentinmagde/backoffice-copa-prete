@@ -1,33 +1,84 @@
 'use client';
 
 import Link from 'next/link';
-import { Fragment } from 'react';
+import { Fragment, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import { Title } from 'rizzui/typography';
 import { Collapse } from 'rizzui/collapse';
 import cn from '@core/utils/class-names';
 import { PiCaretDownBold } from 'react-icons/pi';
-import { menuItems } from '@/layouts/hydrogen/menu-items';
+import { menuItems, MenuItem } from '@/layouts/hydrogen/menu-items';
 import StatusBadge from '@core/components/get-status-badge';
+import { Skeleton } from 'rizzui';
+import { useAuthRoles } from '@/lib/api/hooks/use-auth-roles';
 
 export function SidebarMenu() {
   const pathname = usePathname();
-
+  const { hasAnyRole, hasAnyPermission, isLoading } = useAuthRoles();
   const pathWithoutId = pathname.replace(/\/\d+/g, '');
+
+  // Filtrer les éléments de menu en fonction des rôles
+  const filteredMenuItems = useMemo(() => {
+    const filterItems = (items: MenuItem[]): MenuItem[] => {
+      return items
+        .map(item => {
+          // Vérifier si l'utilisateur a accès à cet élément
+          let hasAccess = true;
+
+          if (item.allowedRoles && item.allowedRoles.length > 0) {
+            hasAccess = hasAnyRole(...(item.allowedRoles as any));
+          }
+
+          if (hasAccess && item.requiredPermissions && item.requiredPermissions.length > 0) {
+            hasAccess = hasAnyPermission(...item.requiredPermissions);
+          }
+
+          if (!hasAccess) return null;
+
+          // Filtrer les dropdownItems récursivement
+          let filteredDropdownItems: MenuItem[] | undefined;
+          if (item.dropdownItems) {
+            filteredDropdownItems = filterItems(item.dropdownItems);
+            if (filteredDropdownItems.length === 0 && item.href === '#') {
+              return null;
+            }
+          }
+
+          return {
+            ...item,
+            dropdownItems: filteredDropdownItems,
+          };
+        })
+        .filter(Boolean) as MenuItem[];
+    };
+
+    return filterItems(menuItems);
+  }, [hasAnyRole, hasAnyPermission]);
+
+  if (isLoading) {
+    return (
+      <div className="mt-4 space-y-2 px-3 3xl:mt-6">
+        {[1, 2, 3, 4, 5].map(i => (
+          <Skeleton key={i} className="h-10 w-full rounded-md" />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="mt-4 pb-3 3xl:mt-6">
-      {menuItems.map((item, index) => {
+      {filteredMenuItems.map((item, index) => {
         const isActive = pathWithoutId === (item?.href as string);
         const pathnameExistInDropdowns: any = item?.dropdownItems?.filter(
           (dropdownItem) => dropdownItem.href === pathWithoutId
         );
         const isDropdownOpen = Boolean(pathnameExistInDropdowns?.length);
+
         return (
           <Fragment key={item.name + '-' + index}>
             {item?.href ? (
               <>
-                {item?.dropdownItems ? (
+                {item?.dropdownItems && item.dropdownItems.length > 0 ? (
                   <Collapse
                     defaultOpen={isDropdownOpen}
                     header={({ open, toggle }) => (
@@ -66,7 +117,7 @@ export function SidebarMenu() {
                       </div>
                     )}
                   >
-                    {item?.dropdownItems?.map((dropdownItem, index) => {
+                    {item?.dropdownItems?.map((dropdownItem, idx) => {
                       const isChildActive =
                         pathWithoutId === (dropdownItem?.href as string);
 
@@ -74,7 +125,7 @@ export function SidebarMenu() {
                         dropdownItem?.href && (
                           <Link
                             href={dropdownItem?.href}
-                            key={dropdownItem?.name + index}
+                            key={dropdownItem?.name + idx}
                             className={cn(
                               'mx-3.5 mb-0.5 flex items-center justify-between rounded-md px-3.5 py-2 font-medium capitalize last-of-type:mb-1 lg:last-of-type:mb-2 2xl:mx-5',
                               isChildActive
@@ -98,7 +149,8 @@ export function SidebarMenu() {
                             {dropdownItem?.badge?.length ? (
                               <StatusBadge status={dropdownItem?.badge} />
                             ) : null}
-                          </Link>)
+                          </Link>
+                        )
                       );
                     })}
                   </Collapse>

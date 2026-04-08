@@ -11,9 +11,20 @@ export const pageLinks = [
   {
     name: 'Tableau de bord',
     href: routes.executive.dashboard,
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR', 'TRAINER', 'MENTOR', 'PARTNER'],
   },
   {
     name: 'Pages',
+  },
+  {
+    name: 'MPME & Coopératives',
+    href: routes.settings.rolesPermissions,
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN'],
+  },
+  {
+    name: 'Gestion des cohortes',
+    href: routes.cohorts.list,
+     allowedRoles: ['SUPER_ADMIN', 'ADMIN'],
   },
   // label start
   {
@@ -23,14 +34,17 @@ export const pageLinks = [
   {
     name: 'Rôles & permissions',
     href: routes.settings.rolesPermissions,
+     allowedRoles: ['SUPER_ADMIN', 'ADMIN'],
   },
   {
     name: 'Profil',
     href: routes.settings.profile,
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR', 'TRAINER', 'MENTOR', 'PARTNER'],
   },
   {
     name: 'Paramètres du profil',
     href: routes.settings.profileSettings,
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR', 'TRAINER', 'MENTOR', 'PARTNER'],
   },
   // {
   //   name: 'Préférences de notification',
