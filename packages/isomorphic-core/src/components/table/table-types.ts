@@ -45,12 +45,12 @@ export type PinnedRowProps<TData extends Record<string, any>> = {
   className?: string;
   tableCellClassName?: string;
 };
-export type TableClassNameProps = {
+export type TableClassNameProps<TData extends Record<string, any>> = {
   container?: string;
   tableClassName?: string;
   headerClassName?: string;
   bodyClassName?: string;
-  rowClassName?: string;
+  rowClassName?: string | ((row: Row<TData>) => string);
   cellClassName?: string;
   headerCellClassName?: string;
   expandedRowClassName?: string;
@@ -58,7 +58,7 @@ export type TableClassNameProps = {
 };
 export type MainTableProps<T extends Record<string, any>> = {
   stickyHeader?: boolean;
-  classNames?: TableClassNameProps;
+  classNames?: TableClassNameProps<T>;
   isLoading?: boolean;
   columnOrder?: string[];
   showLoadingText?: boolean;

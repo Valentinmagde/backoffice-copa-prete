@@ -5,16 +5,16 @@ import { Button, Text, Badge } from 'rizzui';
 import cn from '@core/utils/class-names';
 import { useScrollableSlider } from '@core/hooks/use-scrollable-slider';
 import { PiCaretLeftBold, PiCaretRightBold, PiArrowLeft } from 'react-icons/pi';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import PageHeader from '@/app/shared/page-header';
 import { routes } from '@/config/routes';
 import { useMPMECandidature } from '@/lib/api/hooks/use-mpme';
-import { de } from 'date-fns/locale';
 import SelectionActions from './selection-actions';
 
 export default function CandidatureNav({ id }: { id: string }) {
     const pathname = usePathname();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { data: candidature, isLoading } = useMPMECandidature(Number(id));
 
     const { sliderEl, sliderPrevBtn, sliderNextBtn, scrollToTheRight, scrollToTheLeft } =
@@ -22,13 +22,19 @@ export default function CandidatureNav({ id }: { id: string }) {
 
     const base = `/mpme/candidatures/${id}`;
 
+    const queryString = searchParams.toString();
+    const params = queryString ? `?${queryString}` : '';
+
     const menuItems = [
-        { label: 'Informations personnelles', value: base },
-        { label: "Informations sur l'entreprise", value: `${base}/entreprise` },
-        { label: 'Présentation du projet', value: `${base}/projet` },
-        { label: 'Documents', value: `${base}/documents` },
-        { label: 'Statut & Historique', value: `${base}/statut` },
+        { label: 'Informations personnelles', value: `${base}${params}` },
+        { label: "Informations sur l'entreprise", value: `${base}/entreprise${params}` },
+        { label: 'Présentation du projet', value: `${base}/projet${params}` },
+        { label: 'Documents', value: `${base}/documents${params}` },
+        { label: 'Statut & Historique', value: `${base}/statut${params}` },
     ];
+
+    const returnUrl = `${routes.mpme.candidatures.list}${params}`;
+    const candidaturesListUrl = `${routes.mpme.candidatures.list}${params}`;
 
     const fullName = candidature
         ? `${candidature?.user?.firstName} ${candidature?.user?.lastName}`
@@ -38,7 +44,7 @@ export default function CandidatureNav({ id }: { id: string }) {
         title: fullName,
         breadcrumb: [
             { href: routes.executive.dashboard, name: 'Tableau de bord' },
-            { href: routes.mpme.candidatures.list, name: 'Candidatures MPME' },
+            { href: candidaturesListUrl, name: 'Candidatures MPME' },
             { name: fullName },
         ],
     };
@@ -55,14 +61,13 @@ export default function CandidatureNav({ id }: { id: string }) {
                 return 'Rejeté';
             default:
                 return 'Non soumis';
-        };
+        }
     };
 
     return (
         <>
             <PageHeader title={pageHeader.title} breadcrumb={pageHeader.breadcrumb}>
                 <div className="flex items-center gap-3">
-                    {/* Complétion du profil */}
                     {candidature && (
                         <div className="flex items-center gap-2 rounded-lg border border-muted bg-white px-4 py-2">
                             <div className="h-2 w-24 overflow-hidden rounded-full bg-gray-200">
@@ -77,9 +82,8 @@ export default function CandidatureNav({ id }: { id: string }) {
                         </div>
                     )}
 
-                    {/* Statut badge */}
                     {candidature?.status && (
-                        <Badge color="warning" variant="flat" className="capitalize">
+                        <Badge color={candidature?.status?.code === 'REJECTED' ? "danger" : candidature?.status?.code === 'SELECTED' ? "success" : candidature?.status?.code === 'PRE_SELECTED' ? "primary" : "warning"} variant="flat" className="capitalize">
                             {mapStatus(candidature?.status?.code)}
                         </Badge>
                     )}
@@ -92,9 +96,10 @@ export default function CandidatureNav({ id }: { id: string }) {
                         />
                     )}
 
+                    {/* ✅ Bouton retour avec préservation des paramètres */}
                     <Button
                         variant="outline"
-                        onClick={() => router.push(routes.mpme.inscrits.list)}
+                        onClick={() => router.push(returnUrl)}
                         className="gap-2"
                     >
                         <PiArrowLeft className="size-4" />
@@ -122,7 +127,7 @@ export default function CandidatureNav({ id }: { id: string }) {
                             ref={sliderEl}
                         >
                             {menuItems.map((menu, index) => {
-                                const isActive = pathname === menu.value;
+                                const isActive = pathname === menu.value.split('?')[0];
                                 return (
                                     <Link
                                         href={menu.value}

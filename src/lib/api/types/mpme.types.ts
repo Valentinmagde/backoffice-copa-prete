@@ -40,7 +40,7 @@ export interface MPMECandidature {
   projectSector: string;
   requestedAmount: number;
   submissionDate: string;
-  status: 'submitted' | 'under_review' | 'preselected' | 'selected' | 'rejected';
+  status: string;
   score?: number;
   evaluationComments?: string;
   businessPlanUrl?: string;

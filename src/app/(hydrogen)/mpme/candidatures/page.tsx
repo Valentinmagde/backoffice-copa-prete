@@ -1,14 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import PageHeader from '@/app/shared/page-header';
 import { routes } from '@/config/routes';
-import ExportButton from '@/app/shared/export-button';
 import { MPMEFilters } from '@/lib/api/types/mpme.types';
 import { useMPMECandidatures } from '@/lib/api/hooks/use-mpme';
 import MPMECandidaturesTable from '@/app/shared/mpme/candidatures/mpme-candidatures-table';
 import { exportToCSV } from '@core/utils/export-to-csv-2';
 import ExportColumnsSelector from '@core/components/export-columns-selector';
+import { debounce } from 'lodash';
 
 const pageHeader = {
   title: 'Candidatures MPME',
@@ -31,7 +32,6 @@ const EXPORT_COLUMNS = [
   { key: 'totalProjectCost', label: 'Coût total projet' },
   { key: 'province', label: 'Province' },
   { key: 'commune', label: 'Commune' },
-  // { key: 'status', label: 'Statut' },
   { key: 'createdAt', label: "Date d'inscription" },
 ];
 
@@ -49,28 +49,207 @@ const DEFAULT_EXPORT_COLUMNS = [
   'legalStatus',
   'sector',
   'requestedAmount',
-  'status',
 ];
 
+// const parseUrlParams = (searchParams: URLSearchParams) => {
+//   const page = parseInt(searchParams.get('page') || '1');
+//   const limit = parseInt(searchParams.get('limit') || '10');
+//   const search = searchParams.get('search') || '';
+//   const status = searchParams.get('status') || '';
+//   const province = searchParams.get('province') || '';
+//   const sector = searchParams.get('sector') || '';
+//   const fromDate = searchParams.get('fromDate') || '';
+//   const toDate = searchParams.get('toDate') || '';
+
+//   return {
+//     pagination: { pageIndex: page - 1, pageSize: limit },
+//     filters: {
+//       search,
+//       status: status || undefined,
+//       province: province || undefined,
+//       sector: sector || undefined,
+//       fromDate: fromDate || undefined,
+//       toDate: toDate || undefined,
+//       isProfileComplete: true,
+//     },
+//   };
+// };
+
+// Fonction pour parser les paramètres d'URL
+export const parseUrlParams = (searchParams: URLSearchParams): {
+  pagination: { pageIndex: number; pageSize: number };
+  filters: Omit<MPMEFilters, 'page' | 'limit'>;
+} => {
+  // Pagination
+  const page = parseInt(searchParams.get('page') || '1');
+  const limit = parseInt(searchParams.get('limit') || '10');
+
+  // Filtres texte/recherche
+  const search = searchParams.get('search') || '';
+
+  // Filtres simples (string)
+  const statusId = searchParams.get('statusId') || undefined;
+  const category = searchParams.get('category') || undefined;
+  const companyType = searchParams.get('companyType') || undefined;
+  const gender = searchParams.get('gender') || undefined;
+  const legalStatus = searchParams.get('legalStatus') || undefined;
+  const sector = searchParams.get('sector') || undefined;
+  const amountRange = searchParams.get('amountRange') || undefined;
+  const minCompletion = searchParams.get('minCompletion') || undefined;
+
+  // Filtres numériques
+  const provinceId = searchParams.get('provinceId') ? parseInt(searchParams.get('provinceId')!) : undefined;
+  const minAmount = searchParams.get('minAmount') ? parseInt(searchParams.get('minAmount')!) : undefined;
+  const maxAmount = searchParams.get('maxAmount') ? parseInt(searchParams.get('maxAmount')!) : undefined;
+
+  // Filtres booléens
+  const isWomanLed = searchParams.get('isWomanLed') === 'true' ? true : searchParams.get('isWomanLed') === 'false' ? false : undefined;
+  const isRefugeeLed = searchParams.get('isRefugeeLed') === 'true' ? true : searchParams.get('isRefugeeLed') === 'false' ? false : undefined;
+  const hasClimateImpact = searchParams.get('hasClimateImpact') === 'true' ? true : searchParams.get('hasClimateImpact') === 'false' ? false : undefined;
+
+  // Filtres de dates
+  const fromDate = searchParams.get('fromDate') || undefined;
+  const toDate = searchParams.get('toDate') || undefined;
+
+  return {
+    pagination: {
+      pageIndex: page - 1,
+      pageSize: limit
+    },
+    filters: {
+      search,
+      statusId: statusId ? statusId : undefined,
+      category: category ? category : undefined,
+      companyType: companyType ? companyType : undefined,
+      gender: gender ? gender : undefined,
+      legalStatus: legalStatus ? legalStatus : undefined,
+      sector: sector ? sector : undefined,
+      amountRange,
+      minCompletion: minCompletion ? parseInt(minCompletion) : undefined,
+      provinceId,
+      minAmount,
+      maxAmount,
+      isWomanLed,
+      isRefugeeLed,
+      hasClimateImpact,
+      fromDate,
+      toDate,
+      isProfileComplete: true,
+    },
+  };
+};
+
+// Fonction pour construire l'URL avec les paramètres
+export const buildUrlWithParams = (
+  baseUrl: string,
+  pagination: { pageIndex: number; pageSize: number },
+  filters: Omit<MPMEFilters, 'page' | 'limit'>
+): string => {
+  const params = new URLSearchParams();
+
+  // Pagination
+  if (pagination.pageIndex > 0) {
+    params.set('page', (pagination.pageIndex + 1).toString());
+  }
+  if (pagination.pageSize !== 10) {
+    params.set('limit', pagination.pageSize.toString());
+  }
+
+  // Filtres texte/recherche
+  if (filters.search) params.set('search', filters.search);
+
+  // Filtres simples (string)
+  if (filters.statusId) params.set('statusId', filters.statusId.toLocaleString());
+  if (filters.category) params.set('category', filters.category);
+  if (filters.companyType) params.set('companyType', filters.companyType);
+  if (filters.gender) params.set('gender', filters.gender);
+  if (filters.legalStatus) params.set('legalStatus', filters.legalStatus);
+  if (filters.sector) params.set('sector', filters.sector);
+  if (filters.amountRange) params.set('amountRange', filters.amountRange);
+  if (filters.minCompletion) params.set('minCompletion', filters.minCompletion.toLocaleString());
+
+  // Filtres numériques
+  if (filters.provinceId) params.set('provinceId', filters.provinceId.toString());
+  if (filters.minAmount) params.set('minAmount', filters.minAmount.toString());
+  if (filters.maxAmount) params.set('maxAmount', filters.maxAmount.toString());
+
+  // Filtres booléens
+  if (filters.isWomanLed !== undefined) params.set('isWomanLed', filters.isWomanLed.toString());
+  if (filters.isRefugeeLed !== undefined) params.set('isRefugeeLed', filters.isRefugeeLed.toString());
+  if (filters.hasClimateImpact !== undefined) params.set('hasClimateImpact', filters.hasClimateImpact.toString());
+
+  // Filtres de dates
+  if (filters.fromDate) params.set('fromDate', filters.fromDate);
+  if (filters.toDate) params.set('toDate', filters.toDate);
+
+  const queryString = params.toString();
+  return queryString ? `${baseUrl}?${queryString}` : baseUrl;
+};
+
+// Fonction pour réinitialiser tous les filtres
+export const resetFilters = (): Omit<MPMEFilters, 'page' | 'limit'> => ({
+  isProfileComplete: true,
+  search: '',
+  statusId: undefined,
+  category: undefined,
+  companyType: undefined,
+  gender: undefined,
+  legalStatus: undefined,
+  sector: undefined,
+  amountRange: undefined,
+  minCompletion: undefined,
+  provinceId: undefined,
+  minAmount: undefined,
+  maxAmount: undefined,
+  isWomanLed: undefined,
+  isRefugeeLed: undefined,
+  hasClimateImpact: undefined,
+  fromDate: undefined,
+  toDate: undefined,
+});
+
 export default function MPMECandidaturesPage() {
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 10,
-  });
-  const [filters, setFilters] = useState<Omit<MPMEFilters, 'page' | 'limit'>>({ isProfileComplete: true });
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const initialParams = parseUrlParams(searchParams);
+
+  const [pagination, setPagination] = useState(initialParams.pagination);
+  const [filters, setFilters] = useState<Omit<MPMEFilters, 'page' | 'limit'>>(initialParams.filters);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const { data, isLoading } = useMPMECandidatures({
-    page:   pagination.pageIndex + 1,
-    limit:  pagination.pageSize,
+    page: pagination.pageIndex + 1,
+    limit: pagination.pageSize,
     ...filters,
   });
-  const { data: data2} = useMPMECandidatures({page:   1, limit:  3000});
-    
-  const exportData = data2?.data || [];
-  
-  const candidatures = data?.data || [];
-  const totalItems = data?.meta?.total || 0;
-  const totalPages = data?.meta?.totalPages || 1;
+
+  const updateUrl = useCallback(() => {
+    const newUrl = buildUrlWithParams(pathname, pagination, filters);
+
+    if (isInitialLoad) {
+      router.replace(newUrl);
+      setIsInitialLoad(false);
+    } else {
+      router.push(newUrl);
+    }
+  }, [pathname, pagination, filters, router, isInitialLoad]);
+
+  useEffect(() => {
+    updateUrl();
+  }, [pagination, filters, updateUrl]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const newParams = parseUrlParams(new URLSearchParams(window.location.search));
+      setPagination(newParams.pagination);
+      setFilters(newParams.filters);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const handleFilterChange = (newFilters: Partial<MPMEFilters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
@@ -78,9 +257,24 @@ export default function MPMECandidaturesPage() {
   };
 
   const handleResetFilters = () => {
-    setFilters({});
+    setFilters({ isProfileComplete: true });
     setPagination(prev => ({ ...prev, pageIndex: 0 }));
   };
+
+  const handlePaginationChange = (newPagination: typeof pagination) => {
+    setPagination(newPagination);
+  };
+
+  const candidatures = data?.data || [];
+  const totalItems = data?.meta?.total || 0;
+  const totalPages = data?.meta?.totalPages || 1;
+
+  const { data: allData } = useMPMECandidatures({
+    page: 1,
+    limit: 3000,
+    ...filters,
+  });
+  const exportData = allData?.data || [];
 
   const handleExport = (selectedColumns: { key: string; label: string }[]) => {
     exportToCSV(exportData, selectedColumns, `candidatures_${new Date().toISOString().split('T')[0]}`);
@@ -97,11 +291,6 @@ export default function MPMECandidaturesPage() {
             data={exportData}
             fileName={`candidatures_${new Date().toISOString().split('T')[0]}`}
           />
-          {/* <ExportButton
-            data={candidatures}
-            fileName="mpme_candidatures"
-            header="ID,Code,Entreprise,Province,Statut d'entreprise, Statut légal de l'entreprise,Représentant,Secteur d'activité,Titre du projet,Subvention demandée,Coût total projet,Statut,Date d'inscription"
-          /> */}
         </div>
       </PageHeader>
 
@@ -112,8 +301,7 @@ export default function MPMECandidaturesPage() {
         totalItems={totalItems}
         totalPages={totalPages}
         pagination={pagination}
-        onPaginationChange={setPagination}
-        // columns={mpmeInscritsColumns}
+        onPaginationChange={handlePaginationChange}
         filters={filters}
         onFilterChange={handleFilterChange}
         onResetFilters={handleResetFilters}

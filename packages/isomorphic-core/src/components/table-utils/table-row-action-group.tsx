@@ -6,6 +6,7 @@ import { ActionIcon, Flex, Tooltip } from "rizzui";
 import Link from "next/link";
 import cn from "@core/utils/class-names";
 import DeletePopover from "../delete-popover";
+import { useSearchParams } from "next/navigation";
 
 export default function TableRowActionGroup({
   onDelete,
@@ -17,6 +18,7 @@ export default function TableRowActionGroup({
   hasEdit = true,
   hasView = true,
   hasDelete = true,
+  preserveQueryParams = true,
 }: {
   onDelete?: () => void;
   editUrl?: string;
@@ -27,7 +29,23 @@ export default function TableRowActionGroup({
   hasEdit?: boolean;
   hasView?: boolean;
   hasDelete?: boolean;
+  preserveQueryParams?: boolean;
 }) {
+  const searchParams = useSearchParams();
+
+  const buildUrlWithParams = (baseUrl: string) => {
+    if (!preserveQueryParams) return baseUrl;
+    
+    const currentParams = searchParams.toString();
+    if (!currentParams) return baseUrl;
+    
+    const separator = baseUrl.includes('?') ? '&' : '?';
+    return `${baseUrl}${separator}${currentParams}`;
+  };
+
+  const viewUrlWithParams = buildUrlWithParams(viewUrl);
+  const editUrlWithParams = buildUrlWithParams(editUrl);
+
   return (
     <Flex
       align="center"
@@ -37,7 +55,7 @@ export default function TableRowActionGroup({
     >
       {hasEdit &&
         <Tooltip size="sm" content="Modifier l'élément" placement="top" color="invert">
-          <Link href={editUrl}>
+          <Link href={editUrlWithParams}>
             <ActionIcon
               as="span"
               size="sm"
@@ -50,7 +68,7 @@ export default function TableRowActionGroup({
         </Tooltip>}
       {hasView &&
         <Tooltip size="sm" content="Voir l'élément" placement="top" color="invert">
-          <Link href={viewUrl}>
+          <Link href={viewUrlWithParams}>
             <ActionIcon
               as="span"
               size="sm"

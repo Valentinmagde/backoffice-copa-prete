@@ -16,12 +16,12 @@ import { PiBuildings, PiUsers, PiCurrencyDollar, PiMapPin } from 'react-icons/pi
 // }
 
 function InfoRow({ label, value }: { label: string; value?: any }) {
-  return (
-    <div className="flex flex-col gap-1 py-3 border-b border-dashed border-gray-200 last:border-0">
-      <Text className="text-sm font-medium tracking-wider text-gray-400">{label}</Text>
-      <Text className="text-sm text-gray-800">{value ?? '—'}</Text>
-    </div>
-  );
+    return (
+        <div className="flex flex-col gap-1 py-3 border-b border-dashed border-gray-200 last:border-0">
+            <Text className="text-sm font-medium tracking-wider text-gray-400">{label}</Text>
+            <Text className="text-sm text-gray-800">{value ?? '—'}</Text>
+        </div>
+    );
 }
 
 function StatCard({ label, value, icon: Icon, color = 'text-primary-500' }: any) {
@@ -85,8 +85,12 @@ export default function EntreprisePage({ params }: { params: Promise<{ id: strin
                     />
                     <InfoRow label="Secteur d'activité" value={co.primarySector?.name || co.otherCompanySector} />
                     <InfoRow label="Description de l'activité principale" value={co.activityDescription} />
-                    <InfoRow label="Numéro de téléphone" value={co.companyPhone} />
-                    <InfoRow label="Adresse e-mail" value={co.companyEmail} />
+                    {co.companyAddressIsDifferent && (
+                        <>
+                            <InfoRow label="Numéro de téléphone" value={co.companyPhone} />
+                            <InfoRow label="Adresse e-mail" value={co.companyEmail} />
+                        </>
+                    )}
                     <InfoRow label="Votre entreprise ou Coopérative a-t-elle déjà eu recours à un service d’appui aux entreprises ?"
                         value={<Badge color={co.supportService ? 'success' : 'default'} variant="flat">{co.supportService ? 'Oui' : 'Non'}</Badge>}
                     />
@@ -132,7 +136,7 @@ export default function EntreprisePage({ params }: { params: Promise<{ id: strin
                     {/* <InfoRow label="Nombre de personnes vivant avec un handicap associés" value={co.associates?.partners?.disabled} /> */}
                     {/* <InfoRow label="Nombre d’albinos associés" value={co.associates?.partners?.albinos} /> */}
                     {/* <InfoRow label="Nombre de rapatriés associés" value={co.associates?.partners?.repatriates} /> */}
-                    <StatCard label="Nombre d'associés" value={co.associates?.count} icon={PiUsers} />
+                    <StatCard label="Nombre d'associés" value={co.associates?.count === 'other' ? co.associates?.countOther : co.associates?.count} icon={PiUsers} />
                     <StatCard label="Nombre de femmes associées" value={co.associates?.partners?.female} icon={PiUsers} color="text-pink-500" />
                     <StatCard label="Nombre d'hommes associés" value={co.associates?.partners?.male} icon={PiUsers} color="text-blue-500" />
                     <StatCard label="Nombre de réfugiés associés" value={co.associates?.partners?.refugee} icon={PiUsers} color="text-orange-500" />
@@ -140,7 +144,7 @@ export default function EntreprisePage({ params }: { params: Promise<{ id: strin
                     <StatCard label="Nombre de personnes vivant avec un handicap associés" value={co.associates?.partners?.disabled} icon={PiUsers} color="text-red-500" />
                     <StatCard label="Nombre d’albinos associés" value={co.associates?.partners?.albinos} icon={PiUsers} color="text-yellow-500" />
                     <StatCard label="Nombre de rapatriés associés" value={co.associates?.partners?.repatriates} icon={PiUsers} color="text-teal-500" />
-                    
+
                 </div>
             </FormGroup>
 

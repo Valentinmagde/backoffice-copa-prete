@@ -83,8 +83,6 @@ export function useEvaluateMPMECandidature(id: number) {
     });
 }
 
-// lib/api/hooks/use-mpme.ts
-
 export function usePreselectBeneficiary(id: number) {
     const qc = useQueryClient();
     return useMutation({

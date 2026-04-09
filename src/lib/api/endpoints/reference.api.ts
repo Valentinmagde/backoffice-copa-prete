@@ -21,6 +21,14 @@ class ReferenceApi {
     const response = await apiClient.get(`${this.base}/provinces`);
     return response;
   }
+
+  /**
+   * Récupérer la liste des Communes
+   */
+  async getStatusByEntity(entityType: string): Promise<any[]> {
+    const response = await apiClient.get(`${this.base}/statuses/${entityType}`);
+    return response;
+  }
 }
 
 export const referenceApi = new ReferenceApi();

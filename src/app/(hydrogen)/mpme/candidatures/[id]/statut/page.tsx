@@ -12,7 +12,7 @@ import SelectionActions from '@/app/shared/mpme/candidatures/selection-actions';
 
 const STEPS = [
     { key: 'REGISTERED', label: 'Inscrit', icon: PiClockCountdown, color: 'text-orange-500' },
-    { key: 'PRESELECTED', label: 'Présélectionné', icon: PiStar, color: 'text-blue-500' },
+    { key: 'PRE_SELECTED', label: 'Présélectionné', icon: PiStar, color: 'text-blue-500' },
     { key: 'VALIDATED', label: 'Validé', icon: PiCheckCircle, color: 'text-green-500' },
     { key: 'REJECTED', label: 'Rejeté', icon: PiXCircle, color: 'text-red-500' },
 ];
@@ -151,7 +151,7 @@ export default function StatutPage({ params }: { params: Promise<{ id: string }>
                         <div className="rounded-lg border border-muted bg-white p-6">
                             <Text className="mb-4 text-sm text-gray-500">
                                 Statut actuel :{' '}
-                                <Badge color="warning" variant="flat">{mapStatus(b.status.code)}</Badge>
+                                <Badge color={b?.status?.code === 'REJECTED' ? "danger" : b?.status?.code === 'SELECTED' ? "success" : b?.status?.code === 'PRE_SELECTED' ? "primary" : "warning"} variant="flat">{mapStatus(b.status.code)}</Badge>
                             </Text>
                             <SelectionActions
                                 beneficiaryId={b.id}

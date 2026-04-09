@@ -92,15 +92,15 @@ export default function ProjetPage({ params }: { params: Promise<{ id: string }>
       <FormGroup title="Emplois prévus dans le cadre du projet" description="Employés planifiés après financement" className="@3xl:grid-cols-12">
         <div className="grid grid-cols-2 gap-4 @3xl:col-span-8 sm:grid-cols-3">
           {[
-            { label: 'Femmes',      value: p?.plannedEmployees?.female, icon: PiUsers },
-            { label: 'Hommes',      value: p?.plannedEmployees?.male, icon: PiUsers, color:"text-pink-500" },
-            { label: 'Permanents',  value: p?.plannedEmployees?.permanent, icon: PiUsers, color:"text-blue-500" },
-            { label: 'Réfugiés',   value: p?.plannedEmployees?.refugee, icon: PiUsers, color:"text-orange-500" },
-            { label: 'Batwa',       value: p?.plannedEmployees?.batwa, icon: PiUsers, color:"text-purple-500" },
-            { label: 'Handicapés',  value: p?.plannedEmployees?.disabled, icon: PiUsers },
-            { label: 'Albinos',     value: p?.plannedEmployees?.albinos, icon: PiUsers, color:"text-yellow-500" },
-            { label: 'Rapatriés',  value: p?.plannedEmployees?.repatriates, icon: PiUsers, color:"text-teal-500" },
-            { label: 'Temps partiel', value: p?.plannedEmployees?.partTime, icon: PiUsers, color:"text-gray-500" },
+            { label: 'Nombre de femmes',      value: p?.plannedEmployees?.female, icon: PiUsers },
+            { label: 'Nombre d\'hommes',      value: p?.plannedEmployees?.male, icon: PiUsers, color:"text-pink-500" },
+            { label: 'Nombre d\'employés permanents',  value: p?.plannedEmployees?.permanent, icon: PiUsers, color:"text-blue-500" },
+            { label: 'Nombre de réfugiés',   value: p?.plannedEmployees?.refugee, icon: PiUsers, color:"text-orange-500" },
+            { label: 'Nombre de batwa',       value: p?.plannedEmployees?.batwa, icon: PiUsers, color:"text-purple-500" },
+            { label: 'Nombre de personnes vivant avec un Handicape',  value: p?.plannedEmployees?.disabled, icon: PiUsers },
+            { label: 'Nombre d\'albinos',     value: p?.plannedEmployees?.albinos, icon: PiUsers, color:"text-yellow-500" },
+            { label: 'Nombre de rapatriés',  value: p?.plannedEmployees?.repatriates, icon: PiUsers, color:"text-teal-500" },
+            { label: 'Nombre d\'employés à temps partiel', value: p?.plannedEmployees?.partTime, icon: PiUsers, color:"text-gray-500" },
           ].map(({ label, value, icon: Icon, color = 'text-primary-500'}) => (
             <div key={label} className="flex items-center gap-3 rounded-lg border border-muted bg-white p-4">
                 <div className={`rounded-lg bg-gray-100 p-2 ${color}`}>

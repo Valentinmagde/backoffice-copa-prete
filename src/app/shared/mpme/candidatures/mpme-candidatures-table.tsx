@@ -63,7 +63,6 @@ export default function MPMECandidaturesTable({
         if (!onPaginationChange) return;
         const current = table.getState().pagination;
         const next = typeof updater === 'function' ? updater(current) : updater;
-        // ✅ On passe l'objet entier, cohérent avec handlePaginationChange du parent
         onPaginationChange({ pageIndex: next.pageIndex, pageSize: next.pageSize });
       },
     },
@@ -81,6 +80,25 @@ export default function MPMECandidaturesTable({
     }
   }, [pagination?.pageIndex, pagination?.pageSize]);
 
+  const getRowClassName = (row: MPMECandidature) => {
+    console.log('row.status', row);
+     console.log('Row status:', row.status, 'isPreselected:');
+    switch (row.status) {
+      case 'PRE_SELECTED':
+      case 'PRESELECTED':
+        return 'bg-primary-50 border-l-4 border-primary-500';
+
+      case 'REJECTED':
+        return 'bg-red-50 border-l-4 border-red-500';
+
+      case 'SELECTED':
+        return 'bg-green-50 border-l-4 border-green-500';
+
+      default:
+        return '';
+    }
+  };
+
   return (
     <div className={className}>
       {!hideFilters && (
@@ -97,15 +115,29 @@ export default function MPMECandidaturesTable({
         isLoading={isLoading}
         classNames={{
           container: 'border border-muted rounded-md border-t-0',
-          rowClassName: 'last:border-0',
+          // rowClassName: 'last:border-0',
+          rowClassName: (row: any) => {
+            const status = row.original?.status;
+            switch (status) {
+              case 'PRE_SELECTED':
+                return 'bg-blue-50';
+              case 'REJECTED':
+                return 'bg-red-50';
+              case 'VALIDATED':
+              case 'SELECTED':
+                return 'bg-green-50';
+              default:
+                return 'last:border-0';
+            }
+          },
         }}
       />
       {!hidePagination && (
         <TablePagination
           table={table}
           className="py-4"
-          // total={totalItems}
-          // showTotal={true}
+        // total={totalItems}
+        // showTotal={true}
         />
       )}
     </div>

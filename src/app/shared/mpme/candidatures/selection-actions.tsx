@@ -11,6 +11,7 @@ import {
     useSelectBeneficiary,
     useRejectBeneficiary,
 } from '@/lib/api/hooks/use-mpme';
+import { useRouter } from 'next/navigation';
 
 type Action = 'preselect' | 'select' | 'reject' | null;
 
@@ -66,6 +67,7 @@ export default function SelectionActions({
 }) {
     const [openAction, setOpenAction] = useState<Action>(null);
     const [comment, setComment] = useState('');
+    const router = useRouter();
 
     const { mutate: preselect, isPending: preselectLoading } = usePreselectBeneficiary(beneficiaryId);
     const { mutate: select, isPending: selectLoading } = useSelectBeneficiary(beneficiaryId);
@@ -84,6 +86,9 @@ export default function SelectionActions({
             onSuccess: () => {
                 setOpenAction(null);
                 setComment('');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
             },
         });
     };

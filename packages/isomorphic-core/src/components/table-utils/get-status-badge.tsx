@@ -9,6 +9,7 @@ const statusColors = {
   warning: ["text-orange-dark", "bg-orange-dark"],
   danger: ["text-red-dark", "bg-red-dark"],
   default: ["text-gray-600", "bg-gray-600"],
+  primary: ["text-blue-600", "bg-blue-600"],
 };
 
 const allStatus = {
@@ -32,12 +33,19 @@ const allStatus = {
   refunded: statusColors.default,
   burundais: statusColors.success,
   refugier: statusColors.default,
+  présélectionné: statusColors.primary,
+  pre_selected: statusColors.primary,
+  "pré-sélectionné": statusColors.primary,
+  sélectionné: statusColors.success,
+  rejeté: statusColors.danger,
+  en_évaluation: statusColors.warning,
 };
 
 export type StatusTypes = keyof typeof allStatus;
 
 export function getStatusBadge(status: string) {
-  const statusLower = status.toLowerCase() as StatusTypes;
+  const statusStr = typeof status === 'string' ? status : String(status || '');
+  const statusLower = statusStr.toLowerCase() as StatusTypes;
   if (statusLower in allStatus) {
     return (
       <Flex align="center" gap="2" className="w-auto">

@@ -107,7 +107,11 @@ export default function MainTable<TData extends Record<string, any>>({
                   return (
                     <Table.Row
                       key={headerGroup.id}
-                      className={classNames?.rowClassName}
+                      className={
+                        typeof classNames?.rowClassName === 'string'
+                          ? classNames.rowClassName
+                          : undefined
+                      }
                     >
                       {components?.headerCell ? (
                         components.headerCell(headerCellParam)
@@ -145,7 +149,13 @@ export default function MainTable<TData extends Record<string, any>>({
               <>
                 {mainRows.map((row) => (
                   <Fragment key={row.id}>
-                    <Table.Row className={classNames?.rowClassName}>
+                    <Table.Row
+                      className={cn(
+                        typeof classNames?.rowClassName === 'function'
+                          ? classNames.rowClassName(row)
+                          : classNames?.rowClassName
+                      )}
+                    >
                       {row.getVisibleCells().map((cell) => {
                         const bodyCellParam = {
                           cell,
@@ -253,9 +263,9 @@ export function TableHeadBasic<TData extends Record<string, any>>({
               {header.isPlaceholder
                 ? null
                 : flexRender(
-                    header.column.columnDef.header,
-                    header.getContext()
-                  )}
+                  header.column.columnDef.header,
+                  header.getContext()
+                )}
 
               {header.column.getCanSort() ? (
                 <button
