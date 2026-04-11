@@ -10,7 +10,7 @@ function InfoRow({ label, value }: { label: string; value?: any }) {
   return (
     <div className="flex flex-col gap-1 py-3 border-b border-dashed border-gray-200 last:border-0">
       <Text className="text-sm font-medium tracking-wider text-gray-400">{label}</Text>
-      <Text className="text-sm text-gray-800">{value ?? '—'}</Text>
+      <Text className="text-sm text-gray-800 text-justify">{value ?? '—'}</Text>
     </div>
   );
 }

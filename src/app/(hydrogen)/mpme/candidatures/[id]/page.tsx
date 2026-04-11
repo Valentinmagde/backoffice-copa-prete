@@ -26,12 +26,12 @@ function InfoRow({ label, value, icon: Icon }: {
 }
 
 function InfoRowBlock({ label, value }: { label: string; value?: any }) {
-  return (
-    <div className="flex flex-col gap-1 py-3 border-b border-dashed border-gray-200 last:border-0">
-      <Text className="text-sm font-medium tracking-wider text-gray-500">{label}</Text>
-      <Text className="text-sm text-gray-800">{value ?? '—'}</Text>
-    </div>
-  );
+    return (
+        <div className="flex flex-col gap-1 py-3 border-b border-dashed border-gray-200 last:border-0">
+            <Text className="text-sm font-medium tracking-wider text-gray-500">{label}</Text>
+            <Text className="text-sm text-gray-800">{value ?? '—'}</Text>
+        </div>
+    );
 }
 
 function BooleanRow({ label, value }: { label: string; value?: boolean | null }) {
@@ -41,7 +41,7 @@ function BooleanRow({ label, value }: { label: string; value?: boolean | null })
             {value === null || value === undefined ? (
                 <Text className="text-sm text-gray-800">{value ?? '—'}</Text>
             ) : (
-                 <Text className="text-sm text-gray-800"><Badge color={value === false ? 'danger' : 'success'} variant="flat">
+                <Text className="text-sm text-gray-800"><Badge color={value === false ? 'danger' : 'success'} variant="flat">
                     {value ? 'Oui' : 'Non'}
                 </Badge></Text>
             )}
@@ -156,8 +156,14 @@ export default function PersonalInfoPage({ params }: { params: Promise<{ id: str
                     <BooleanRow label="Êtes-vous fournisseur direct ou réalisez-vous des travaux autres que les activités dont bénéficieront les subventions du COPA à un membre ou plusieurs membres de l’Unité de Gestion du Projet ou du Comité de sélection ?" value={b.eligibilityQuestions?.isDirectSupplierToProject} />
                     <BooleanRow label="L'entreprise ou son/sa représentant/Représentante légal.e ont il déjà bénéficié d'une subvention similaire durant les 5 dernières années ?" value={b.eligibilityQuestions?.hasPreviousGrant} />
                     {b.eligibilityQuestions?.hasPreviousGrant && (
-                        <InfoRow label="Précisez le projet ou l'organisme concerné" value={b.eligibilityQuestions?.previousGrantDetails} />
+                        <div className="flex flex-col gap-1 py-3 border-b border-dashed border-gray-200 last:border-0">
+                            <Text className="text-sm font-medium tracking-wider text-gray-400">Précisez le projet ou l'organisme concerné</Text>
+                            <Text className="text-sm text-gray-800 text-justify">{b.eligibilityQuestions?.previousGrantDetails ?? '—'}</Text>
+                        </div>
                     )}
+                    {/* {b.eligibilityQuestions?.hasPreviousGrant && (
+                        <InfoRow label="Précisez le projet ou l'organisme concerné" value={b.eligibilityQuestions?.previousGrantDetails} />
+                    )} */}
                 </div>
             </FormGroup>
         </div>

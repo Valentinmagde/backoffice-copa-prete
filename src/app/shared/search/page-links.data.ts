@@ -1,8 +1,15 @@
 import { routes } from '@/config/routes';
-import { DUMMY_ID } from '@/config/constants';
+import { UserRole } from '@/lib/api/types/roles.types';
+
+export interface PageLink {
+  name: string;
+  href?: string;
+  allowedRoles?: UserRole[];
+  requiredPermissions?: string[];
+}
 
 // Note: do not add href in the label object, it is rendering as label
-export const pageLinks = [
+export const pageLinks: PageLink[] = [
   // label start
   {
     name: 'Accueil',
@@ -24,7 +31,7 @@ export const pageLinks = [
   {
     name: 'Gestion des cohortes',
     href: routes.cohorts.list,
-     allowedRoles: ['SUPER_ADMIN', 'ADMIN'],
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN'],
   },
   // label start
   {
@@ -34,7 +41,7 @@ export const pageLinks = [
   {
     name: 'Rôles & permissions',
     href: routes.settings.rolesPermissions,
-     allowedRoles: ['SUPER_ADMIN', 'ADMIN'],
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN'],
   },
   {
     name: 'Profil',

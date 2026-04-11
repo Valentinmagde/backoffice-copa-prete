@@ -40,6 +40,16 @@ export function useAuthRoles() {
         return permissions.some(permission => hasPermission(permission));
     };
 
+    const canAccessPage = (page: { allowedRoles?: UserRole[]; requiredPermissions?: string[] }): boolean => {
+        if (page.allowedRoles && page.allowedRoles.length > 0) {
+            if (!hasRole(page.allowedRoles)) return false;
+        }
+        if (page.requiredPermissions && page.requiredPermissions.length > 0) {
+            if (!hasAnyPermission(...page.requiredPermissions)) return false;
+        }
+        return true;
+    };
+
     const isLoading = status === 'loading';
     const isAuthenticated = status === 'authenticated';
 
@@ -49,6 +59,7 @@ export function useAuthRoles() {
         hasAnyRole,
         hasPermission,
         hasAnyPermission,
+        canAccessPage,
         isLoading,
         isAuthenticated,
         isSuperAdmin: userRoles.includes('SUPER_ADMIN'),

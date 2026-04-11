@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   ActionIcon,
@@ -17,21 +17,43 @@ import {
   PiXBold,
 } from 'react-icons/pi';
 import { pageLinks } from './page-links.data';
+import { useAuthRoles } from '@/lib/api/hooks/use-auth-roles';
 
 export default function SearchList({ onClose }: { onClose?: () => void }) {
   const inputRef = useRef(null);
   const [searchText, setSearchText] = useState('');
+  const { canAccessPage, userRoles } = useAuthRoles();
 
-  let menuItemsFiltered = pageLinks;
-  if (searchText.length > 0) {
-    menuItemsFiltered = pageLinks.filter((item: any) => {
-      const label = item.name;
-      return (
-        label.match(searchText.toLowerCase()) ||
-        (label.toLowerCase().match(searchText.toLowerCase()) && label)
-      );
+  // let menuItemsFiltered = pageLinks;
+  // if (searchText.length > 0) {
+  //   menuItemsFiltered = pageLinks.filter((item: any) => {
+  //     const label = item.name;
+  //     return (
+  //       label.match(searchText.toLowerCase()) ||
+  //       (label.toLowerCase().match(searchText.toLowerCase()) && label)
+  //     );
+  //   });
+  // }
+
+  // ✅ Filtrer les pages par rôles et permissions
+  const accessiblePages = useMemo(() => {
+    return pageLinks.filter(page => {
+      // Ne pas filtrer les sections (pas de href)
+      if (!page.href) return true;
+      // Vérifier si l'utilisateur a accès à cette page
+      return canAccessPage(page);
     });
-  }
+  }, [canAccessPage]);
+
+  // ✅ Filtrer par texte de recherche
+  const menuItemsFiltered = useMemo(() => {
+    if (!searchText.trim()) return accessiblePages;
+    
+    return accessiblePages.filter((item) => {
+      const label = item.name;
+      return label.toLowerCase().includes(searchText.toLowerCase());
+    });
+  }, [accessiblePages, searchText]);
 
   useEffect(() => {
     if (inputRef?.current) {

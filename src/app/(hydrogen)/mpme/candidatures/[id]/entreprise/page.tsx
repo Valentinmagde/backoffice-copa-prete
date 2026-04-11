@@ -19,7 +19,7 @@ function InfoRow({ label, value }: { label: string; value?: any }) {
     return (
         <div className="flex flex-col gap-1 py-3 border-b border-dashed border-gray-200 last:border-0">
             <Text className="text-sm font-medium tracking-wider text-gray-400">{label}</Text>
-            <Text className="text-sm text-gray-800">{value ?? '—'}</Text>
+            <Text className="text-sm text-gray-800 text-justify">{value ?? '—'}</Text>
         </div>
     );
 }
@@ -78,8 +78,12 @@ export default function EntreprisePage({ params }: { params: Promise<{ id: strin
                             </Badge>
                         }
                     />
-                    <InfoRow label="Statut légal de l'entreprise (MPME) ou de la Coopérative" value={mapLegalStatus(co.legalStatus)} />
-                    <InfoRow label="NIF ou numéro d'enregistrement" value={co.taxIdNumber} />
+                    {co.companyType === 'formal' && (
+                        <>
+                            <InfoRow label="Statut légal de l'entreprise (MPME) ou de la Coopérative" value={mapLegalStatus(co.legalStatus)} />
+                            <InfoRow label="NIF ou numéro d'enregistrement" value={co.taxIdNumber} />
+                        </>
+                    )}
                     <InfoRow label="Date de création"
                         value={co.creationDate ? new Date(co.creationDate).toLocaleDateString('fr-FR') : null}
                     />
@@ -126,27 +130,21 @@ export default function EntreprisePage({ params }: { params: Promise<{ id: strin
             </FormGroup>
 
             {/* Associés */}
-            <FormGroup title="Associés" description="Répartition des associé(e)s" className="@3xl:grid-cols-12">
-                <div className="grid grid-cols-2 gap-4 @3xl:col-span-8 sm:grid-cols-3">
-                    {/* <InfoRow label="Nombre d'associés" value={co.associates?.count} /> */}
-                    {/* <InfoRow label="Nombre de femmes associées" value={co.associates?.partners?.female} /> */}
-                    {/* <InfoRow label="Nombre d'hommes associés" value={co.associates?.partners?.male} /> */}
-                    {/* <InfoRow label="Nombre de réfugiés associés" value={co.associates?.partners?.refugee} /> */}
-                    {/* <InfoRow label="Nombre de Batwa associés" value={co.associates?.partners?.batwa} /> */}
-                    {/* <InfoRow label="Nombre de personnes vivant avec un handicap associés" value={co.associates?.partners?.disabled} /> */}
-                    {/* <InfoRow label="Nombre d’albinos associés" value={co.associates?.partners?.albinos} /> */}
-                    {/* <InfoRow label="Nombre de rapatriés associés" value={co.associates?.partners?.repatriates} /> */}
-                    <StatCard label="Nombre d'associés" value={co.associates?.count === 'other' ? co.associates?.countOther : co.associates?.count} icon={PiUsers} />
-                    <StatCard label="Nombre de femmes associées" value={co.associates?.partners?.female} icon={PiUsers} color="text-pink-500" />
-                    <StatCard label="Nombre d'hommes associés" value={co.associates?.partners?.male} icon={PiUsers} color="text-blue-500" />
-                    <StatCard label="Nombre de réfugiés associés" value={co.associates?.partners?.refugee} icon={PiUsers} color="text-orange-500" />
-                    <StatCard label="Nombre de Batwa associés" value={co.associates?.partners?.batwa} icon={PiUsers} color="text-purple-500" />
-                    <StatCard label="Nombre de personnes vivant avec un handicap associés" value={co.associates?.partners?.disabled} icon={PiUsers} color="text-red-500" />
-                    <StatCard label="Nombre d’albinos associés" value={co.associates?.partners?.albinos} icon={PiUsers} color="text-yellow-500" />
-                    <StatCard label="Nombre de rapatriés associés" value={co.associates?.partners?.repatriates} icon={PiUsers} color="text-teal-500" />
+            {co.associates?.count && co.associates?.count !== 'solo' && (
+                <FormGroup title="Associés" description="Répartition des associé(e)s" className="@3xl:grid-cols-12">
+                    <div className="grid grid-cols-2 gap-4 @3xl:col-span-8 sm:grid-cols-3">
+                        <StatCard label="Nombre d'associés" value={co.associates?.count === 'other' ? co.associates?.countOther : co.associates?.count} icon={PiUsers} />
+                        <StatCard label="Nombre de femmes associées" value={co.associates?.partners?.female} icon={PiUsers} color="text-pink-500" />
+                        <StatCard label="Nombre d'hommes associés" value={co.associates?.partners?.male} icon={PiUsers} color="text-blue-500" />
+                        <StatCard label="Nombre de réfugiés associés" value={co.associates?.partners?.refugee} icon={PiUsers} color="text-orange-500" />
+                        <StatCard label="Nombre de Batwa associés" value={co.associates?.partners?.batwa} icon={PiUsers} color="text-purple-500" />
+                        <StatCard label="Nombre de personnes vivant avec un handicap associés" value={co.associates?.partners?.disabled} icon={PiUsers} color="text-red-500" />
+                        <StatCard label="Nombre d’albinos associés" value={co.associates?.partners?.albinos} icon={PiUsers} color="text-yellow-500" />
+                        <StatCard label="Nombre de rapatriés associés" value={co.associates?.partners?.repatriates} icon={PiUsers} color="text-teal-500" />
 
-                </div>
-            </FormGroup>
+                    </div>
+                </FormGroup>
+            )}
 
             {/* Finances */}
             <FormGroup title="Finances" description="Situation financière" className="@3xl:grid-cols-12">
