@@ -98,7 +98,7 @@ export default function SelectionActions({
     return (
         <>
             {/* Boutons d'action */}
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full sm:w-auto">
                 {(allowedActions as Action[]).map((action) => {
                     const cfg = ACTION_CONFIG[action!];
                     const Icon = cfg.icon;
@@ -107,7 +107,7 @@ export default function SelectionActions({
                             key={action}
                             color={cfg.color}
                             variant={action === 'reject' ? 'outline' : 'solid'}
-                            className="gap-2"
+                            className="gap-2 w-full sm:w-auto justify-center"
                             onClick={() => { setOpenAction(action); setComment(''); }}
                         >
                             <Icon className="size-4" />

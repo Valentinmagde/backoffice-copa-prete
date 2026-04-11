@@ -1,4 +1,3 @@
-// app/(hydrogen)/mpme/candidatures/[id]/components/company-info-tab.tsx
 'use client';
 
 import { PiBuilding, PiIdentification, PiCalendar, PiChartBar, PiUsers, PiHandshake, PiBank } from 'react-icons/pi';

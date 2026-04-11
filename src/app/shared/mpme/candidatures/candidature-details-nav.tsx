@@ -67,7 +67,7 @@ export default function CandidatureNav({ id }: { id: string }) {
     return (
         <>
             <PageHeader title={pageHeader.title} breadcrumb={pageHeader.breadcrumb}>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                     {candidature && (
                         <div className="flex items-center gap-2 rounded-lg border border-muted bg-white px-4 py-2">
                             <div className="h-2 w-24 overflow-hidden rounded-full bg-gray-200">
@@ -100,7 +100,7 @@ export default function CandidatureNav({ id }: { id: string }) {
                     <Button
                         variant="outline"
                         onClick={() => router.push(returnUrl)}
-                        className="gap-2"
+                        className="gap-2 w-full sm:w-auto justify-center"
                     >
                         <PiArrowLeft className="size-4" />
                         Retour

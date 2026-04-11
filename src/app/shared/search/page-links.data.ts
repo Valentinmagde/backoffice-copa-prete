@@ -26,7 +26,7 @@ export const pageLinks: PageLink[] = [
   {
     name: 'MPME & Coopératives',
     href: routes.settings.rolesPermissions,
-    allowedRoles: ['SUPER_ADMIN', 'ADMIN'],
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR', 'TRAINER', 'MENTOR', 'PARTNER'],
   },
   {
     name: 'Gestion des cohortes',
