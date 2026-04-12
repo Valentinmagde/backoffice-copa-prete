@@ -43,6 +43,9 @@ export interface MPMECandidature {
   status: string;
   score?: number;
   evaluationComments?: string;
+  preSelectedComment?: string;
+  rejectedComment?: string;
+  // selectedComment?: string;
   businessPlanUrl?: string;
   createdAt: string;
   updatedAt: string;
@@ -248,6 +251,8 @@ export interface MPMECandidatureDetails {
   profileCompletionStep: string;
   isProfileComplete: boolean;
   applicationCode: string | null;
+  preSelectedComment: string | null;
+  rejectedComment: string | null;
   applicationSubmittedAt: string | null;
   createdAt: string;
   updatedAt: string;

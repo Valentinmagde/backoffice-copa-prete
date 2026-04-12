@@ -10,12 +10,20 @@ import PageHeader from '@/app/shared/page-header';
 import { routes } from '@/config/routes';
 import { useMPMECandidature } from '@/lib/api/hooks/use-mpme';
 import SelectionActions from './selection-actions';
+import { useState } from 'react';
 
 export default function CandidatureNav({ id }: { id: string }) {
     const pathname = usePathname();
     const router = useRouter();
     const searchParams = useSearchParams();
     const { data: candidature, isLoading } = useMPMECandidature(Number(id));
+    const [overrideComment, setOverrideComment] = useState<string | undefined>(undefined);
+
+    const currentComment = overrideComment ?? (
+    candidature?.status?.code === 'REJECTED' 
+        ? candidature?.rejectedComment 
+        : candidature?.preSelectedComment
+    ) ?? '';
 
     const { sliderEl, sliderPrevBtn, sliderNextBtn, scrollToTheRight, scrollToTheLeft } =
         useScrollableSlider();
@@ -93,6 +101,9 @@ export default function CandidatureNav({ id }: { id: string }) {
                             beneficiaryId={candidature.id}
                             currentStatus={candidature.status.code}
                             beneficiaryName={fullName}
+                            currentComment={currentComment}
+                            onCommentUpdated={(newComment) => setOverrideComment(newComment)}
+                            useDropdown={true}
                         />
                     )}
 

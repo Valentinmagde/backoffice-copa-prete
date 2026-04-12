@@ -103,6 +103,10 @@ class MPMEApi {
     return this.mapBeneficiaryToCandidature(response);
   }
 
+  async updateComment(id: number, comment: string): Promise<MPMECandidature> {
+    const response = await apiClient.patch(`${this.base}/${id}/comment`, { comment });
+    return this.mapBeneficiaryToCandidature(response);
+  }
   // ─── Mappeurs ────────────────────────────────────────────────────────────────
 
   private mapBeneficiaryToMPMEInscrit(beneficiary: any): MPMEInscrit {
@@ -155,6 +159,9 @@ class MPMEApi {
       createdAt: beneficiary.createdAt,
       updatedAt: beneficiary.updatedAt,
       gender: beneficiary.user?.gender?.code === 'F' ? 'Femme' : beneficiary.user?.gender?.code === 'M' ? 'Homme' : '--',
+      preSelectedComment: beneficiary?.preSelectedComment,
+      rejectedComment: beneficiary?.rejectedComment,
+      // selectedComment: beneficiary?.selectedComment,
     };
   }
 

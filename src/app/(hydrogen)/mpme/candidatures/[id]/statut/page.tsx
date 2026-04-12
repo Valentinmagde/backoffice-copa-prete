@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import { Loader, Text, Badge, Button } from 'rizzui';
 import FormGroup from '@/app/shared/form-group';
 import { useMPMECandidature } from '@/lib/api/hooks/use-mpme';
@@ -29,6 +29,13 @@ function InfoRow({ label, value }: { label: string; value?: any }) {
 export default function StatutPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const { data: b, isLoading } = useMPMECandidature(Number(id));
+    const [overrideComment, setOverrideComment] = useState<string | undefined>(undefined);
+    
+    const currentComment = overrideComment ?? (
+        b?.status?.code === 'REJECTED' 
+            ? b?.rejectedComment 
+            : b?.preSelectedComment
+        ) ?? '';
 
     if (isLoading) return <div className="flex h-64 items-center justify-center"><Loader variant="spinner" size="lg" /></div>;
 
@@ -104,8 +111,8 @@ export default function StatutPage({ params }: { params: Promise<{ id: string }>
                                 <PiXCircle className="size-5 text-red-500 shrink-0" />
                                 <div>
                                     <Text className="text-sm font-semibold text-red-700">Dossier rejeté</Text>
-                                    {b?.rejectionReason && (
-                                        <Text className="text-xs text-red-500 mt-1">{b.rejectionReason}</Text>
+                                    {b?.rejectedComment && (
+                                        <Text className="text-xs text-red-500 mt-1">{b.rejectedComment}</Text>
                                     )}
                                 </div>
                             </div>
@@ -157,6 +164,8 @@ export default function StatutPage({ params }: { params: Promise<{ id: string }>
                                 beneficiaryId={b.id}
                                 currentStatus={b.status.code}
                                 beneficiaryName={`${b.user?.firstName} ${b.user?.lastName}`}
+                                currentComment={currentComment}
+                                onCommentUpdated={(newComment) => setOverrideComment(newComment)}
                             />
                         </div>
                     </div>

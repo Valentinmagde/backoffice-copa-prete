@@ -14,7 +14,6 @@ import NextProgress from '@core/components/next-progress';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import '@/app/globals.css';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryProvider } from '@/lib/react-query';
 
 export const metadata = {
@@ -27,7 +26,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const queryClient = new QueryClient();
   const session = await getServerSession(authOptions);
   return (
     <html

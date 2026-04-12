@@ -124,3 +124,10 @@ export function useRejectBeneficiary(id: number) {
         onError: (err: any) => toast.error(err?.message || 'Erreur'),
     });
 }
+
+export function useUpdateComment(beneficiaryId: number) {
+  return useMutation({
+    mutationFn: (comment: string) => mpmeApi.updateComment(beneficiaryId, comment),
+    onError: (err: any) => toast.error(err?.message || 'Erreur'),
+  });
+}
