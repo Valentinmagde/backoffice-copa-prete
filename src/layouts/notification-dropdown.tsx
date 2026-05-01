@@ -1,6 +1,5 @@
 'use client';
 
-import { notificationsData } from '@/data/notifications';
 import { useMedia } from '@core/hooks/use-media';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -16,6 +15,7 @@ function NotificationsList({
 }: {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+  const notificationsData: any[] = [];
   return (
     <div className="w-[320px] text-left sm:w-[360px] 2xl:w-[420px] rtl:text-right">
       <div className="mb-3 flex items-center justify-between ps-6">

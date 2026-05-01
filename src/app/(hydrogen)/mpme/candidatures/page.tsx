@@ -51,30 +51,6 @@ const DEFAULT_EXPORT_COLUMNS = [
   'requestedAmount',
 ];
 
-// const parseUrlParams = (searchParams: URLSearchParams) => {
-//   const page = parseInt(searchParams.get('page') || '1');
-//   const limit = parseInt(searchParams.get('limit') || '10');
-//   const search = searchParams.get('search') || '';
-//   const status = searchParams.get('status') || '';
-//   const province = searchParams.get('province') || '';
-//   const sector = searchParams.get('sector') || '';
-//   const fromDate = searchParams.get('fromDate') || '';
-//   const toDate = searchParams.get('toDate') || '';
-
-//   return {
-//     pagination: { pageIndex: page - 1, pageSize: limit },
-//     filters: {
-//       search,
-//       status: status || undefined,
-//       province: province || undefined,
-//       sector: sector || undefined,
-//       fromDate: fromDate || undefined,
-//       toDate: toDate || undefined,
-//       isProfileComplete: true,
-//     },
-//   };
-// };
-
 // Fonction pour parser les paramètres d'URL
 export const parseUrlParams = (searchParams: URLSearchParams): {
   pagination: { pageIndex: number; pageSize: number };
@@ -103,9 +79,11 @@ export const parseUrlParams = (searchParams: URLSearchParams): {
   const maxAmount = searchParams.get('maxAmount') ? parseInt(searchParams.get('maxAmount')!) : undefined;
 
   // Filtres booléens
-  const isWomanLed = searchParams.get('isWomanLed') === 'true' ? true : searchParams.get('isWomanLed') === 'false' ? false : undefined;
-  const isRefugeeLed = searchParams.get('isRefugeeLed') === 'true' ? true : searchParams.get('isRefugeeLed') === 'false' ? false : undefined;
-  const hasClimateImpact = searchParams.get('hasClimateImpact') === 'true' ? true : searchParams.get('hasClimateImpact') === 'false' ? false : undefined;
+  const parseBool = (v: string | null) => v === 'true' ? true : v === 'false' ? false : undefined;
+  const isWomanLed      = parseBool(searchParams.get('isWomanLed'));
+  const isRefugeeLed    = parseBool(searchParams.get('isRefugeeLed'));
+  const hasClimateImpact = parseBool(searchParams.get('hasClimateImpact'));
+  const documentsCorrected = parseBool(searchParams.get('documentsCorrected'));
 
   // Filtres de dates
   const fromDate = searchParams.get('fromDate') || undefined;
@@ -132,6 +110,7 @@ export const parseUrlParams = (searchParams: URLSearchParams): {
       isWomanLed,
       isRefugeeLed,
       hasClimateImpact,
+      documentsCorrected,
       fromDate,
       toDate,
       isProfileComplete: true,
@@ -177,6 +156,7 @@ export const buildUrlWithParams = (
   if (filters.isWomanLed !== undefined) params.set('isWomanLed', filters.isWomanLed.toString());
   if (filters.isRefugeeLed !== undefined) params.set('isRefugeeLed', filters.isRefugeeLed.toString());
   if (filters.hasClimateImpact !== undefined) params.set('hasClimateImpact', filters.hasClimateImpact.toString());
+  if (filters.documentsCorrected !== undefined) params.set('documentsCorrected', filters.documentsCorrected.toString());
 
   // Filtres de dates
   if (filters.fromDate) params.set('fromDate', filters.fromDate);
@@ -204,6 +184,7 @@ export const resetFilters = (): Omit<MPMEFilters, 'page' | 'limit'> => ({
   isWomanLed: undefined,
   isRefugeeLed: undefined,
   hasClimateImpact: undefined,
+  documentsCorrected: undefined,
   fromDate: undefined,
   toDate: undefined,
 });

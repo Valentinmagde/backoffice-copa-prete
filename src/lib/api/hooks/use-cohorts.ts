@@ -163,6 +163,50 @@ export function useDeactivateCohort() {
     });
 }
 
+// ─── Phases ───────────────────────────────────────────────────────────────────
+
+export const phaseKeys = {
+    byEdition: (editionId: number) => ['cohorts', 'phases', editionId] as const,
+};
+
+export function useCohortePhases(editionId: number) {
+    return useQuery({
+        queryKey: phaseKeys.byEdition(editionId),
+        queryFn: () => apiClient.get(`/reference/copa-phases/edition/${editionId}`),
+        enabled: !!editionId && editionId > 0,
+        staleTime: 30 * 1000,
+    });
+}
+
+export function useTogglePhase(editionId: number) {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: (phaseId: number) => apiClient.post(`/reference/copa-phases/${phaseId}/toggle`, {}),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: phaseKeys.byEdition(editionId) });
+            toast.success('Phase mise à jour');
+        },
+        onError: (error: any) => {
+            toast.error(error?.response?.data?.message || 'Erreur lors de la mise à jour');
+        },
+    });
+}
+
+export function useUpdatePhaseDates(editionId: number) {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({ phaseId, startDate, endDate }: { phaseId: number; startDate: string; endDate: string }) =>
+            apiClient.patch(`/reference/copa-phases/${phaseId}/dates`, { startDate, endDate }),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: phaseKeys.byEdition(editionId) });
+            toast.success('Dates de la phase mises à jour');
+        },
+        onError: (error: any) => {
+            toast.error(error?.response?.data?.message || 'Erreur lors de la mise à jour');
+        },
+    });
+}
+
 /**
  * Duplique une cohorte pour une nouvelle année
  */

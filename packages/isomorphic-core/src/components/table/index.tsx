@@ -138,7 +138,7 @@ export default function MainTable<TData extends Record<string, any>>({
                 table={table}
                 isLeftScrollable={isLeftScrollable}
                 isRightScrollable={isRightScrollable}
-                className={classNames?.rowClassName}
+                className={typeof classNames?.rowClassName === 'function' ? classNames.rowClassName(row) : classNames?.rowClassName}
                 tableCellClassName={classNames?.cellClassName}
               />
             ))}
@@ -155,6 +155,7 @@ export default function MainTable<TData extends Record<string, any>>({
                           ? classNames.rowClassName(row)
                           : classNames?.rowClassName
                       )}
+                      style={classNames?.rowStyle ? classNames.rowStyle(row) : undefined}
                     >
                       {row.getVisibleCells().map((cell) => {
                         const bodyCellParam = {
@@ -207,7 +208,7 @@ export default function MainTable<TData extends Record<string, any>>({
                 table={table}
                 isLeftScrollable={isLeftScrollable}
                 isRightScrollable={isRightScrollable}
-                className={classNames?.rowClassName}
+                className={typeof classNames?.rowClassName === 'function' ? classNames.rowClassName(row) : classNames?.rowClassName}
                 tableCellClassName={classNames?.cellClassName}
               />
             ))}

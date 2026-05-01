@@ -16,6 +16,7 @@ export type CohortDataType = {
   startDate: string;
   endDate: string;
   status: 'active' | 'inactive' | 'pending';
+  isActive: boolean;
   participantCount: number;
   createdAt: string;
 };

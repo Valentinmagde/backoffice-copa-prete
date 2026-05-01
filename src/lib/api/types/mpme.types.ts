@@ -47,6 +47,8 @@ export interface MPMECandidature {
   rejectedComment?: string;
   // selectedComment?: string;
   businessPlanUrl?: string;
+  lastNotifiedAt?: string | null;
+  documentsCorrected?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -77,6 +79,7 @@ export interface MPMEFilters {
 
   // Statut & catégorie
   statusId?:         string;
+  statusCode?:       string;
   category?:         string;   // BURUNDIAN | REFUGEE
 
   // Démographie
@@ -99,6 +102,7 @@ export interface MPMEFilters {
   // Complétion
   minCompletion?:    string | number;
   isProfileComplete?: boolean;
+  documentsCorrected?: boolean;
 
   // Dates
   fromDate?:         string;
@@ -250,6 +254,7 @@ export interface MPMECandidatureDetails {
   profileCompletionPercentage: string;
   profileCompletionStep: string;
   isProfileComplete: boolean;
+  documentsCorrected?: boolean;
   applicationCode: string | null;
   preSelectedComment: string | null;
   rejectedComment: string | null;

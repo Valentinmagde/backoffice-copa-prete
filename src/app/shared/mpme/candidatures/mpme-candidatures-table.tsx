@@ -116,19 +116,14 @@ export default function MPMECandidaturesTable({
         classNames={{
           container: 'border border-muted rounded-md border-t-0',
           // rowClassName: 'last:border-0',
-          rowClassName: (row: any) => {
+          rowClassName: 'last:border-0',
+          rowStyle: (row: any) => {
+            if (row.original?.documentsCorrected) return { backgroundColor: '#fffbeb' };
             const status = row.original?.status;
-            switch (status) {
-              case 'PRE_SELECTED':
-                return 'bg-blue-50';
-              case 'REJECTED':
-                return 'bg-red-50';
-              case 'VALIDATED':
-              case 'SELECTED':
-                return 'bg-green-50';
-              default:
-                return 'last:border-0';
-            }
+            if (status === 'PRE_SELECTED') return { backgroundColor: '#eff6ff' };
+            if (status === 'REJECTED')     return { backgroundColor: '#fef2f2' };
+            if (status === 'VALIDATED' || status === 'SELECTED') return { backgroundColor: '#f0fdf4' };
+            return {};
           },
         }}
       />

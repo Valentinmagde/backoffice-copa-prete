@@ -4,7 +4,7 @@
   "description": "Backoffice COPA/PRETE",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3002",
+    "dev": "next dev -p 3003",
     "lint": "next lint",
     "build": "next build",
     "type:check": "tsc --noEmit",

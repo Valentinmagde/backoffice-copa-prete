@@ -11,6 +11,14 @@ export interface DashboardStats {
     totalCandidatures: number;
     totalBusinessPlans: number;
     totalWomen: number;
+    totalRegistratedWomen: number;
+    totalSubventionsAccordees: number;
+    totalSubventionsDecessees: number;
+    totalPreselected: number;
+    totalSelected: number;
+    totalRegistered: number;
+    totalRejected: number;
+    emploisCrees: number;
     previousPeriod: {
         totalMpme: number;
         totalCandidatures: number;

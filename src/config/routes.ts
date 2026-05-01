@@ -20,6 +20,12 @@ export const routes = {
       evaluate: (id: number | string) => `/mpme/candidatures/${id}/evaluate`,
       create: '/mpme/candidatures/create',
     },
+    notifications: {
+      list: '/mpme/notifications',
+      // details: (id: number | string) => `/mpme/notifications/${id}`,
+      // edit: (id: number | string) => `/mpme/notifications/${id}/edit`,
+      // create: '/mpme/notifications/create',
+    },
   },
   cohorts: {
     list: '/cohorts',

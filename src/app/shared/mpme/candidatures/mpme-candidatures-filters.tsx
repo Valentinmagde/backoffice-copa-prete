@@ -115,7 +115,7 @@ export default function CandidaturesFilters<TData extends Record<string, any>>({
         'statusId', 'category', 'companyType', 'gender',
         'minCompletion', 'fromDate', 'toDate', 'provinceId',
         'legalStatus', 'sector', 'minAmount', 'maxAmount',
-        'isWomanLed', 'isRefugeeLed', 'hasClimateImpact',
+        'isWomanLed', 'isRefugeeLed', 'hasClimateImpact', 'documentsCorrected',
     ];
     const activeFilterCount = FILTER_KEYS.filter((k) => Boolean(filters[k])).length;
 
@@ -419,6 +419,17 @@ function FilterElements({
                     ))}
                 </div>
             </div> */}
+
+            {/* ── Documents corrigés ───────────────────────────────── */}
+            <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-muted bg-white px-4 py-2.5 hover:bg-gray-50">
+                <input
+                    type="checkbox"
+                    checked={Boolean(filters.documentsCorrected)}
+                    onChange={(e) => onFilterChange?.({ documentsCorrected: e.target.checked || undefined })}
+                    className="h-4 w-4 rounded border-gray-300 text-primary-600"
+                />
+                <Text className="text-sm font-medium text-gray-700">Documents corrigés uniquement</Text>
+            </label>
 
             {/* ── Reset ─────────────────────────────────────────────── */}
             {hasActiveFilters && (

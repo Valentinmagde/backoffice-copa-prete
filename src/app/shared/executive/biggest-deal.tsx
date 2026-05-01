@@ -1,4 +1,3 @@
-// app/shared/executive/biggest-deal.tsx
 'use client';
 
 import WidgetCard from '@core/components/cards/widget-card';
@@ -11,6 +10,7 @@ import { useStatusPipeline } from '@/lib/api/hooks/use-dashboard';
 const COULEURS_STATUT: Record<string, string> = {
   'Registered': '#94a3b8',
   'Pending': '#f59e0b',
+  'Pre-selected': '#007aff',
   'Validated': '#10b981',
   'Rejected': '#ef4444',
 };
@@ -18,6 +18,7 @@ const COULEURS_STATUT: Record<string, string> = {
 const libellesStatut: Record<string, string> = {
   'Registered': 'Enregistré',
   'Pending': 'En attente',
+  'Pre-selected': 'Pré-sélectionné',
   'Validated': 'Validé',
   'Rejected': 'Rejeté',
 };

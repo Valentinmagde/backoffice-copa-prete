@@ -1,6 +1,5 @@
 'use client';
 
-import { usersData } from '@/data/users-data';
 import { useTanStackTable } from '@core/components/table/custom/use-TanStack-Table';
 import { usersColumns } from './columns';
 import Table from '@core/components/table';
@@ -10,8 +9,6 @@ import Filters from './filters';
 import { useEffect, useState } from 'react';
 import { UsersFilters } from '@/lib/api/types/users.types';
 import { useAdminStaff, useDeleteUser, useDeleteUsers } from '@/lib/api/hooks/use-users';
-
-export type UsersTableDataType = (typeof usersData)[number];
 
 export default function UsersTable() {
   const [filters, setFilters] = useState<UsersFilters>({
@@ -24,7 +21,7 @@ export default function UsersTable() {
   const { mutate: deleteUser }  = useDeleteUser();
   const { mutate: deleteUsers } = useDeleteUsers();
 
-  const { table, setData } = useTanStackTable<UsersTableDataType>({
+  const { table, setData } = useTanStackTable<any>({
     tableData: data?.data ?? [],
     columnConfig: usersColumns,
     options: {
@@ -62,6 +59,7 @@ export default function UsersTable() {
       <Filters table={table} />
       <Table
         table={table}
+        isLoading={isLoading}
         variant="modern"
         classNames={{
           container: 'border border-muted rounded-md',

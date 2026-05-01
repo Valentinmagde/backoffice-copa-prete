@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { TableVariantProps } from "rizzui";
 import {
   Row,
@@ -51,6 +52,7 @@ export type TableClassNameProps<TData extends Record<string, any>> = {
   headerClassName?: string;
   bodyClassName?: string;
   rowClassName?: string | ((row: Row<TData>) => string);
+  rowStyle?: (row: Row<TData>) => React.CSSProperties;
   cellClassName?: string;
   headerCellClassName?: string;
   expandedRowClassName?: string;

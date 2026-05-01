@@ -39,6 +39,15 @@ const allStatus = {
   sélectionné: statusColors.success,
   rejeté: statusColors.danger,
   en_évaluation: statusColors.warning,
+  // Statuts notifications
+  envoyé: statusColors.success,
+  échoué: statusColors.danger,
+  "en attente": statusColors.warning,
+  // Types notifications
+  présélection: statusColors.primary,
+  rejet: statusColors.danger,
+  groupé: statusColors.primary,
+  individuel: statusColors.warning,
 };
 
 export type StatusTypes = keyof typeof allStatus;

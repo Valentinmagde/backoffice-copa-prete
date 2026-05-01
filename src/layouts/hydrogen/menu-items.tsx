@@ -43,6 +43,11 @@ export const menuItems = [
         href: routes.mpme.candidatures.list,
         allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR', 'TRAINER', 'MENTOR', 'PARTNER'],
       },
+      {
+        name: 'Notifications',
+        href: routes.mpme.notifications.list,
+        allowedRoles: ['SUPER_ADMIN', 'ADMIN']
+      }
     ],
   },
   {

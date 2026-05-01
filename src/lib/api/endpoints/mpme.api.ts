@@ -108,7 +108,6 @@ class MPMEApi {
     return this.mapBeneficiaryToCandidature(response);
   }
   // ─── Mappeurs ────────────────────────────────────────────────────────────────
-
   private mapBeneficiaryToMPMEInscrit(beneficiary: any): MPMEInscrit {
     return {
       id: beneficiary.id,
@@ -162,6 +161,8 @@ class MPMEApi {
       preSelectedComment: beneficiary?.preSelectedComment,
       rejectedComment: beneficiary?.rejectedComment,
       // selectedComment: beneficiary?.selectedComment,
+      lastNotifiedAt: beneficiary?.lastNotifiedAt ?? null,
+      documentsCorrected: beneficiary?.documentsCorrected ?? false,
     };
   }
 

@@ -22,6 +22,8 @@ export const mpmeKeys = {
     candidatures: () => ['mpme', 'candidatures'] as const,
     candidaturesList: (filters?: MPMEFilters) => ['mpme', 'candidatures', 'list', filters ?? {}] as const,
     candidatureDetail: (id: number) => ['mpme', 'candidatures', 'detail', id] as const,
+    preSelectedBeneficiaries: () => ['mpme', 'preselected'] as const,
+    rejectedBeneficiaries: () => ['mpme', 'rejected'] as const,
 };
 
 // ─── MPME Inscrits ────────────────────────────────────────────────────────────
@@ -55,6 +57,31 @@ export function useMPMECandidatures(filters: MPMEFilters = {}) {
         queryFn: () => mpmeApi.getCandidatures(filters),
         staleTime: 30 * 1000,
         // placeholderData: keepPreviousData,
+    });
+}
+
+export function usePreselectedBeneficiaries(filters: MPMEFilters = {}) {
+    if (!filters.isProfileComplete) {
+        filters.isProfileComplete = true;
+    }
+
+    return useQuery({
+        queryKey: mpmeKeys.preSelectedBeneficiaries(),
+        queryFn: () => mpmeApi.getCandidatures(filters),
+        staleTime: 30 * 1000,
+        // placeholderData: keepPreviousData,
+    });
+}
+
+export function useRejectedBeneficiaries(filters: MPMEFilters = {}) {
+    if (!filters.isProfileComplete) {
+        filters.isProfileComplete = true;
+    }
+
+    return useQuery({
+        queryKey: mpmeKeys.rejectedBeneficiaries(),
+        queryFn: () => mpmeApi.getCandidatures(filters),
+        staleTime: 30 * 1000,
     });
 }
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { createColumnHelper } from '@tanstack/react-table';
-import { Text, ActionIcon, Badge, Tooltip, Progress } from 'rizzui';
+import { Text, ActionIcon, Tooltip, Progress } from 'rizzui';
 import Link from 'next/link';
 import { PiCaretDownBold, PiCaretUpBold, PiCurrencyDollar } from 'react-icons/pi';
 import { routes } from '@/config/routes';
@@ -184,16 +184,11 @@ export const candidatesColumns = (expanded = true) => {
     // ── Statut ───────────────────────────────────────────────────
     columnHelper.accessor('status', {
       id: 'status',
-      size: 140,
+      size: 160,
       header: 'Statut',
       cell: ({ row }) => {
         const cfg = STATUS_CONFIG[row.original.status ?? ''] ?? STATUS_CONFIG.REGISTERED;
-        return getStatusBadge(cfg.label)
-        // (
-        //   <Badge color={cfg.color} variant="flat" className="whitespace-nowrap">
-        //     {cfg.label}
-        //   </Badge>
-        // );
+        return getStatusBadge(cfg.label);
       },
     }),
 

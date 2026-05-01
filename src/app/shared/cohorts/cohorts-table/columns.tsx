@@ -8,7 +8,7 @@ import DateCell from '@core/ui/date-cell';
 import TableRowActionGroup from '@core/components/table-utils/table-row-action-group';
 import Link from 'next/link';
 import { routes } from '@/config/routes';
-import { CohortDataType } from './cohorts-table';
+import { CohortDataType } from '.';
 import { getStatusBadge } from '@core/components/table-utils/get-status-badge';
 import { formatDate } from '@core/utils/format-date';
 
@@ -121,8 +121,8 @@ export const cohortsColumns = [
       },
     }) => (
       <TableRowActionGroup
-        viewUrl={`#`}
-        editUrl={`#`}
+        viewUrl={routes.cohorts.details(row.original.id)}
+        hasEdit={false}
         deletePopoverTitle="Supprimer cette cohorte"
         deletePopoverDescription={`Êtes-vous sûr de vouloir supprimer la cohorte "${row.original.name}" ? Cette action est irréversible.`}
         onDelete={() => meta?.handleDeleteRow?.(row.original)}

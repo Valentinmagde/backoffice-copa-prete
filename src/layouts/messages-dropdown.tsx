@@ -1,7 +1,6 @@
 'use client';
 
 import { routes } from '@/config/routes';
-import { messagesData } from '@/data/messages';
 import { useMedia } from '@core/hooks/use-media';
 import cn from '@core/utils/class-names';
 import dayjs from 'dayjs';
@@ -18,6 +17,8 @@ function MessagesList({
 }: {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+  const messagesData: any[] = [];
+  
   return (
     <div className="w-[320px] text-left sm:w-[360px] 2xl:w-[420px] rtl:text-right">
       <div className="mb-2 flex items-center justify-between ps-6">
