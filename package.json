@@ -4,7 +4,7 @@
   "description": "Backoffice COPA/PRETE",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3003",
+    "dev": "next dev -p 3002",
     "lint": "next lint",
     "build": "next build",
     "type:check": "tsc --noEmit",
@@ -103,6 +103,7 @@
     "tailwind-merge": "^3.0.2",
     "typescript": "5.8.2",
     "uploadthing": "^7.6.0",
+    "xlsx": "^0.18.5",
     "zod": "^3.24.2"
   },
   "devDependencies": {

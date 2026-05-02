@@ -1,7 +1,7 @@
 'use client';
 
 import { createColumnHelper } from '@tanstack/react-table';
-import { Button, Text } from 'rizzui';
+import { Button, Text, Tooltip } from 'rizzui';
 import { getStatusBadge } from '@core/components/table-utils/get-status-badge';
 import TableAvatar from '@core/ui/avatar-card';
 import DateCell from '@core/ui/date-cell';
@@ -99,9 +99,11 @@ export const getColumns = (
                 const c = row.original;
                 const comment = c.status === 'REJECTED' ? c.rejectedComment : c.preSelectedComment;
                 return comment ? (
-                    <Text className="max-w-[200px] truncate text-xs italic text-gray-500">
-                        {comment}
-                    </Text>
+                    <Tooltip content={comment} placement="top">
+                        <Text className="max-w-[200px] truncate text-xs italic text-gray-500">
+                            {comment}
+                        </Text>
+                    </Tooltip>
                 ) : (
                     <Text className="text-xs text-gray-300">—</Text>
                 );

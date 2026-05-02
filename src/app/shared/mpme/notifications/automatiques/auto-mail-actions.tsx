@@ -75,27 +75,19 @@ export default function AutoMailActions() {
         options: {
             enableColumnResizing: false,
             manualPagination: true,
+            autoResetPageIndex: false,
             pageCount: totalPages,
-            onPaginationChange: (updater) => {
-                const current = table.getState().pagination;
-                const next = typeof updater === 'function' ? updater(current) : updater;
-                setPagination({ pageIndex: next.pageIndex, pageSize: next.pageSize });
+            onPaginationChange: (updater: any) => {
+                setPagination(prev => typeof updater === 'function' ? updater(prev) : updater);
             },
         },
     });
 
-    // Synchronisation de la pagination
+    // Réinitialiser la page quand les filtres changent
     useEffect(() => {
-        const currentPageIndex = table.getState().pagination.pageIndex;
-        const currentPageSize = table.getState().pagination.pageSize;
-
-        if (pagination.pageIndex !== currentPageIndex) {
-            table.setPageIndex(pagination.pageIndex);
-        }
-        if (pagination.pageSize !== currentPageSize) {
-            table.setPageSize(pagination.pageSize);
-        }
-    }, [pagination.pageIndex, pagination.pageSize, table]);
+        setPagination(prev => ({ ...prev, pageIndex: 0 }));
+        table.setPageIndex(0);
+    }, [search, statusFilter]);
 
     const handleSend = () => {
         if (!confirm) return;

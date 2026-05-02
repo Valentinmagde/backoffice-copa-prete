@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button, Input, MultiSelect, Select, Text } from 'rizzui';
 import {
     PiUsers,
@@ -10,11 +10,15 @@ import {
     PiEnvelope,
     PiDeviceMobile,
     PiChatCircleText,
+    PiFileXls,
+    PiCheckCircle,
+    PiXCircle,
 } from 'react-icons/pi';
 import HorizontalFormBlockWrapper from '@/app/shared/account-settings/horiozontal-block';
 import RichTextEditor from '../rich-text-editor';
 import { useSendEmail } from '@/lib/api/hooks/use-notifications';
 import { useMPMECandidatures } from '@/lib/api/hooks/use-mpme';
+import { mpmeApi } from '@/lib/api/endpoints/mpme.api';
 import toast from 'react-hot-toast';
 import { useDashboardStats } from '@/lib/api/hooks/use-dashboard';
 import type { NotificationType, NotificationChannel } from '@/lib/api/types/notification.types';
@@ -92,6 +96,12 @@ const getTargetOptions = (counts: { all: number; preSelected: number; rejected: 
     { label: 'Candidats inscrits', value: 'REGISTERED', count: counts.registered },
 ];
 
+interface XlsImportResult {
+    matched: string[];
+    notFound: string[];
+    total: number;
+}
+
 export default function MailComposer() {
     const [mode, setMode] = useState<SendMode>('group');
     const [channel, setChannel] = useState<NotificationChannel>('EMAIL');
@@ -100,6 +110,10 @@ export default function MailComposer() {
     const [subject, setSubject] = useState('');
     const [message, setMessage] = useState('');
     const [preview, setPreview] = useState(false);
+    const [xlsResult, setXlsResult] = useState<XlsImportResult | null>(null);
+    const [isParsingXls, setIsParsingXls] = useState(false);
+    const [xlsCandidates, setXlsCandidates] = useState<typeof candidates>([]);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const { data: candidatesData, isLoading: isLoadingCandidates } = useMPMECandidatures({
         limit: -1,
         isProfileComplete: true,
@@ -109,7 +123,13 @@ export default function MailComposer() {
 
     const candidates = candidatesData?.data || [];
 
-    const selectedCandidatsData = candidates.filter(c =>
+    // Pool complet = candidats chargés + ceux importés via XLS qui ne sont pas encore dedans
+    const allCandidateOptions = [
+        ...candidates,
+        ...xlsCandidates.filter(x => !candidates.find(c => c.id === x.id)),
+    ];
+
+    const selectedCandidatsData = allCandidateOptions.filter(c =>
         selectedCandidats.includes(c.id.toString())
     );
 
@@ -125,6 +145,69 @@ export default function MailComposer() {
     const recipientCount = mode === 'group' ? (targetOption?.count ?? 0) : selectedCandidats.length;
 
     const { mutate: sendEmail, isPending } = useSendEmail();
+
+    const handleXlsImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setIsParsingXls(true);
+        setXlsResult(null);
+        try {
+            const { read, utils } = await import('xlsx');
+            const buffer = await file.arrayBuffer();
+            const wb = read(buffer, { type: 'array' });
+            const ws = wb.Sheets[wb.SheetNames[0]];
+
+            const rows: Record<string, any>[] = utils.sheet_to_json(ws);
+            if (rows.length === 0) { toast.error('Le fichier est vide'); return; }
+
+            // Trouver la colonne id (id, ID, beneficiary_id, beneficiaryId…)
+            const ID_VARIANTS = ['id', 'beneficiary_id', 'beneficiaryid', 'beneficiary id', 'identifiant'];
+            const allKeys = Object.keys(rows[0]);
+            const idKey = allKeys.find(k => ID_VARIANTS.includes(k.trim().toLowerCase()));
+
+            if (!idKey) {
+                toast.error(`Colonne "id" introuvable. Colonnes détectées : ${allKeys.join(', ')}`);
+                return;
+            }
+
+            // Extraire les IDs numériques
+            const ids = new Set<number>();
+            rows.forEach(row => {
+                const v = Number(row[idKey]);
+                if (!isNaN(v) && v > 0) ids.add(v);
+            });
+
+            if (ids.size === 0) { toast.error('Aucun ID valide dans la colonne "' + idKey + '"'); return; }
+
+            // Appel API direct sans filtre isProfileComplete
+            const allResult = await mpmeApi.getCandidatures({ limit: 9999 } as any);
+            const allByid = new Map(allResult.data.map(c => [c.id, c]));
+
+            const matched: string[] = [];
+            const notFound: string[] = [];
+            const newCandidates: typeof candidates = [];
+
+            ids.forEach(id => {
+                const c = allByid.get(id);
+                if (c) {
+                    matched.push(id.toString());
+                    // Ajouter au pool local si absent
+                    if (!candidates.find(x => x.id === id)) newCandidates.push(c);
+                } else {
+                    notFound.push(String(id));
+                }
+            });
+
+            if (newCandidates.length > 0) setXlsCandidates(prev => [...prev, ...newCandidates]);
+            setSelectedCandidats(prev => Array.from(new Set([...prev, ...matched])));
+            setXlsResult({ matched, notFound, total: ids.size });
+        } catch (err: any) {
+            toast.error('Erreur lors de la lecture : ' + (err?.message ?? 'fichier invalide'));
+        } finally {
+            setIsParsingXls(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
 
     const handleSend = () => {
         if (channel !== 'SMS' && !subject.trim()) {
@@ -274,10 +357,53 @@ export default function MailComposer() {
                         </>
                     ) : (
                         <>
+                            {/* Import XLS */}
+                            <div className="flex items-center gap-3">
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept=".xls,.xlsx"
+                                    className="hidden"
+                                    onChange={handleXlsImport}
+                                />
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-2"
+                                    isLoading={isParsingXls}
+                                    disabled={isLoadingCandidates || isParsingXls}
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    <PiFileXls className="size-4 text-green-600" />
+                                    Importer un fichier XLS
+                                </Button>
+                                {xlsResult && (
+                                    <div className="flex items-center gap-3 text-xs">
+                                        <span className="flex items-center gap-1 text-green-700">
+                                            <PiCheckCircle className="size-3.5" />
+                                            {xlsResult.matched.length} trouvé{xlsResult.matched.length > 1 ? 's' : ''}
+                                        </span>
+                                        {xlsResult.notFound.length > 0 && (
+                                            <span className="flex items-center gap-1 text-red-500">
+                                                <PiXCircle className="size-3.5" />
+                                                {xlsResult.notFound.length} non trouvé{xlsResult.notFound.length > 1 ? 's' : ''}
+                                            </span>
+                                        )}
+                                        <button
+                                            type="button"
+                                            className="text-gray-400 underline hover:text-gray-600"
+                                            onClick={() => setXlsResult(null)}
+                                        >
+                                            Fermer
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
                             <MultiSelect
                                 label="Candidat(s)"
                                 placeholder={isLoadingCandidates ? 'Chargement…' : 'Sélectionnez un ou plusieurs candidats…'}
-                                options={candidates.map(c => ({
+                                options={allCandidateOptions.map(c => ({
                                     label: `${c.representativeName || 'N/A'} — ${c.applicationCode || 'N/A'} (${c.email || 'N/A'})`,
                                     value: c.id.toString(),
                                 }))}
