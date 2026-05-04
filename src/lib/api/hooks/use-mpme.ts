@@ -56,7 +56,7 @@ export function useMPMECandidatures(filters: MPMEFilters = {}) {
         queryKey: mpmeKeys.candidaturesList(filters),
         queryFn: () => mpmeApi.getCandidatures(filters),
         staleTime: 30 * 1000,
-        // placeholderData: keepPreviousData,
+        placeholderData: keepPreviousData,
     });
 }
 
@@ -156,5 +156,17 @@ export function useUpdateComment(beneficiaryId: number) {
   return useMutation({
     mutationFn: (comment: string) => mpmeApi.updateComment(beneficiaryId, comment),
     onError: (err: any) => toast.error(err?.message || 'Erreur'),
+  });
+}
+
+export function useUpdateDocumentCorrectionSettings(beneficiaryId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (dto: { documentCorrectionAllowed?: boolean; documentsCorrected?: boolean; hasSubmitDocumentsCorrected?: boolean }) =>
+      mpmeApi.updateDocumentCorrectionSettings(beneficiaryId, dto),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: mpmeKeys.candidatureDetail(beneficiaryId) });
+    },
+    onError: (err: any) => toast.error(err?.message || 'Erreur lors de la mise à jour'),
   });
 }

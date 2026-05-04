@@ -84,6 +84,7 @@ export const parseUrlParams = (searchParams: URLSearchParams): {
   const isRefugeeLed    = parseBool(searchParams.get('isRefugeeLed'));
   const hasClimateImpact = parseBool(searchParams.get('hasClimateImpact'));
   const documentsCorrected = parseBool(searchParams.get('documentsCorrected'));
+  const hasSubmitDocumentsCorrected = parseBool(searchParams.get('hasSubmitDocumentsCorrected'));
 
   // Filtres de dates
   const fromDate = searchParams.get('fromDate') || undefined;
@@ -111,6 +112,7 @@ export const parseUrlParams = (searchParams: URLSearchParams): {
       isRefugeeLed,
       hasClimateImpact,
       documentsCorrected,
+      hasSubmitDocumentsCorrected,
       fromDate,
       toDate,
       isProfileComplete: true,
@@ -157,6 +159,7 @@ export const buildUrlWithParams = (
   if (filters.isRefugeeLed !== undefined) params.set('isRefugeeLed', filters.isRefugeeLed.toString());
   if (filters.hasClimateImpact !== undefined) params.set('hasClimateImpact', filters.hasClimateImpact.toString());
   if (filters.documentsCorrected !== undefined) params.set('documentsCorrected', filters.documentsCorrected.toString());
+  if (filters.hasSubmitDocumentsCorrected !== undefined) params.set('hasSubmitDocumentsCorrected', filters.hasSubmitDocumentsCorrected.toString());
 
   // Filtres de dates
   if (filters.fromDate) params.set('fromDate', filters.fromDate);
@@ -185,6 +188,7 @@ export const resetFilters = (): Omit<MPMEFilters, 'page' | 'limit'> => ({
   isRefugeeLed: undefined,
   hasClimateImpact: undefined,
   documentsCorrected: undefined,
+  hasSubmitDocumentsCorrected: undefined,
   fromDate: undefined,
   toDate: undefined,
 });

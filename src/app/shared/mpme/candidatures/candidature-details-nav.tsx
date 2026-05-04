@@ -102,6 +102,7 @@ export default function CandidatureNav({ id }: { id: string }) {
                             currentStatus={candidature.status.code}
                             beneficiaryName={fullName}
                             currentComment={currentComment}
+                            documentsCorrected={candidature.documentsCorrected}
                             onCommentUpdated={(newComment) => setOverrideComment(newComment)}
                             useDropdown={true}
                         />

@@ -107,6 +107,13 @@ class MPMEApi {
     const response = await apiClient.patch(`${this.base}/${id}/comment`, { comment });
     return this.mapBeneficiaryToCandidature(response);
   }
+
+  async updateDocumentCorrectionSettings(
+    id: number,
+    dto: { documentCorrectionAllowed?: boolean; documentsCorrected?: boolean; hasSubmitDocumentsCorrected?: boolean },
+  ): Promise<{ success: boolean }> {
+    return apiClient.patch(`${this.base}/${id}/document-correction-settings`, dto);
+  }
   // ─── Mappeurs ────────────────────────────────────────────────────────────────
   private mapBeneficiaryToMPMEInscrit(beneficiary: any): MPMEInscrit {
     return {

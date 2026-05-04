@@ -85,7 +85,6 @@ export default function AutoMailActions() {
 
     // Réinitialiser la page quand les filtres changent
     useEffect(() => {
-        setPagination(prev => ({ ...prev, pageIndex: 0 }));
         table.setPageIndex(0);
     }, [search, statusFilter]);
 

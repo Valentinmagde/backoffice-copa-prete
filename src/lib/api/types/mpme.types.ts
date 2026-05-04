@@ -49,6 +49,7 @@ export interface MPMECandidature {
   businessPlanUrl?: string;
   lastNotifiedAt?: string | null;
   documentsCorrected?: boolean;
+  hasSubmitDocumentsCorrected?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -103,6 +104,7 @@ export interface MPMEFilters {
   minCompletion?:    string | number;
   isProfileComplete?: boolean;
   documentsCorrected?: boolean;
+  hasSubmitDocumentsCorrected?: boolean;
 
   // Dates
   fromDate?:         string;
@@ -254,7 +256,9 @@ export interface MPMECandidatureDetails {
   profileCompletionPercentage: string;
   profileCompletionStep: string;
   isProfileComplete: boolean;
+  documentCorrectionAllowed?: boolean;
   documentsCorrected?: boolean;
+  hasSubmitDocumentsCorrected?: boolean;
   applicationCode: string | null;
   preSelectedComment: string | null;
   rejectedComment: string | null;

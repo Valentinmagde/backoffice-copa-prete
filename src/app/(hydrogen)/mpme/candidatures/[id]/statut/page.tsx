@@ -9,6 +9,8 @@ import {
     PiWarning, PiStar,
 } from 'react-icons/pi';
 import SelectionActions from '@/app/shared/mpme/candidatures/selection-actions';
+import DocumentCorrectionSettings from '@/app/shared/mpme/candidatures/document-correction-settings';
+import { useCurrentUser } from '@/lib/api/hooks/use-current-user';
 
 const STEPS = [
     { key: 'REGISTERED', label: 'Inscrit', icon: PiClockCountdown, color: 'text-orange-500' },
@@ -29,6 +31,8 @@ function InfoRow({ label, value }: { label: string; value?: any }) {
 export default function StatutPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const { data: b, isLoading } = useMPMECandidature(Number(id));
+    const { user } = useCurrentUser();
+    const isSuperOwner = user?.email === 'valentinmagde@gmail.com';
     const [overrideComment, setOverrideComment] = useState<string | undefined>(undefined);
     
     const currentComment = overrideComment ?? (
@@ -152,6 +156,21 @@ export default function StatutPage({ params }: { params: Promise<{ id: string }>
                 </div>
             </FormGroup>
 
+            {b && isSuperOwner && (
+                <FormGroup title="Correction de documents" description="Gérer manuellement les paramètres de correction" className="@3xl:grid-cols-12">
+                    <div className="@3xl:col-span-8">
+                        <div className="rounded-lg border border-muted bg-white p-6">
+                            <DocumentCorrectionSettings
+                                beneficiaryId={b.id}
+                                documentCorrectionAllowed={b.documentCorrectionAllowed}
+                                documentsCorrected={b.documentsCorrected}
+                                hasSubmitDocumentsCorrected={b.hasSubmitDocumentsCorrected}
+                            />
+                        </div>
+                    </div>
+                </FormGroup>
+            )}
+
             {b?.status?.code && !['VALIDATED'].includes(b.status.code) && (
                 <FormGroup title="Actions" description="Gérer le statut de ce dossier" className="@3xl:grid-cols-12">
                     <div className="@3xl:col-span-8">
@@ -165,6 +184,7 @@ export default function StatutPage({ params }: { params: Promise<{ id: string }>
                                 currentStatus={b.status.code}
                                 beneficiaryName={`${b.user?.firstName} ${b.user?.lastName}`}
                                 currentComment={currentComment}
+                                documentsCorrected={b.documentsCorrected}
                                 onCommentUpdated={(newComment) => setOverrideComment(newComment)}
                             />
                         </div>

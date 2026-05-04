@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button, Modal, Text, Textarea, Badge, Popover } from 'rizzui';
 import {
     PiCheckCircle, PiStar, PiXCircle,
-    PiWarning, PiPencil, PiDotsThreeVerticalBold,
+    PiWarning, PiPencil, PiDotsThreeVerticalBold, PiFileText,
 } from 'react-icons/pi';
 import {
     usePreselectBeneficiary,
@@ -66,11 +66,19 @@ const ALLOWED_ACTIONS: Record<string, Action[]> = {
     REJECTED: ['preselect', 'edit'],
 };
 
+// Quand des documents corrigés ont été soumis après un rejet,
+// on propose une réévaluation complète (pas juste modifier le commentaire).
+const ALLOWED_ACTIONS_DOCS_CORRECTED: Record<string, Action[]> = {
+    ...ALLOWED_ACTIONS,
+    REJECTED: ['preselect', 'reject'],
+};
+
 export default function SelectionActions({
     beneficiaryId,
     currentStatus,
     beneficiaryName,
     currentComment = '',
+    documentsCorrected = false,
     onCommentUpdated,
     useDropdown = false,
 }: {
@@ -78,6 +86,7 @@ export default function SelectionActions({
     currentStatus: string;
     beneficiaryName: string;
     currentComment?: string;
+    documentsCorrected?: boolean;
     onCommentUpdated?: (comment: string) => void;
     useDropdown?: boolean;
 }) {
@@ -91,7 +100,8 @@ export default function SelectionActions({
     const { mutate: updateComment, isPending: updateLoading } = useUpdateComment(beneficiaryId);
 
     const isLoading = preselectLoading || selectLoading || rejectLoading || updateLoading;
-    const allowedActions = ALLOWED_ACTIONS[currentStatus] ?? [];
+    const actionMap = documentsCorrected ? ALLOWED_ACTIONS_DOCS_CORRECTED : ALLOWED_ACTIONS;
+    const allowedActions = actionMap[currentStatus] ?? [];
 
     if (allowedActions.length === 0) return null;
 
@@ -140,13 +150,25 @@ export default function SelectionActions({
                         placement="bottom-end"
                     >
                         <Popover.Trigger>
-                            <Button variant="outline" className="gap-2">
+                            <Button variant="outline" className="relative gap-2">
                                 <PiDotsThreeVerticalBold className="size-4" />
                                 Actions
+                                {documentsCorrected && (
+                                    <span className="absolute -right-1 -top-1 flex size-3">
+                                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+                                        <span className="relative inline-flex size-3 rounded-full bg-amber-500" />
+                                    </span>
+                                )}
                             </Button>
                         </Popover.Trigger>
                         <Popover.Content className="z-[9999] p-0 [&>svg]:hidden">
                             <div className="w-56 py-2">
+                                {documentsCorrected && (
+                                    <div className="mx-3 mb-2 flex items-center gap-1.5 rounded-md bg-amber-50 px-2 py-1.5 border border-amber-200">
+                                        <PiFileText className="size-3.5 shrink-0 text-amber-600" />
+                                        <span className="text-xs font-medium text-amber-700">Documents corrigés soumis</span>
+                                    </div>
+                                )}
                                 {(allowedActions as Action[]).map((action) => {
                                     const cfg = ACTION_CONFIG[action!];
                                     const Icon = cfg.icon;
@@ -235,6 +257,17 @@ export default function SelectionActions({
                             </Badge>
                         </div>
                     </div>
+
+                    {openAction === 'reject' && documentsCorrected && currentComment && (
+                        <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                            <Text className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-400">
+                                Motif du rejet précédent
+                            </Text>
+                            <Text className="text-sm italic text-gray-600">
+                                "{currentComment}"
+                            </Text>
+                        </div>
+                    )}
 
                     {openAction === 'reject' && (
                         <div className="mb-4 flex items-start gap-2 rounded-lg bg-red-50 p-3 border border-red-200">
