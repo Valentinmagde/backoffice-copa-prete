@@ -3,7 +3,7 @@
 import { type Table as ReactTableType } from '@tanstack/react-table';
 import { use, useEffect, useState } from 'react';
 import {
-    PiFunnel, PiMagnifyingGlassBold, PiTrashDuotone, PiTrash,
+    PiFunnel, PiMagnifyingGlassBold, PiTrashDuotone, PiTrash, PiCheckSquareDuotone, PiSquareDuotone,
 } from 'react-icons/pi';
 import { Badge, Button, Flex, Input, Text } from 'rizzui';
 import { FilterDrawerView } from '@core/components/controlled-table/table-filter';
@@ -121,18 +121,52 @@ export default function CandidaturesFilters<TData extends Record<string, any>>({
 
     return (
         <Flex align="center" justify="between" className="mb-4 gap-3 flex-wrap">
-            {/* Recherche */}
-            <Input
-                type="search"
-                placeholder="Rechercher par nom, email, entreprise, projet..."
-                value={filters.search ?? ''}
-                onClear={() => onFilterChange?.({ search: '' })}
-                onChange={(e) => onFilterChange?.({ search: e.target.value })}
-                inputClassName="h-9"
-                clearable
-                prefix={<PiMagnifyingGlassBold className="size-4" />}
-                className="w-full max-w-sm"
-            />
+            <Flex align="center" gap="2" className="flex-1 max-w-lg">
+                {/* Recherche */}
+                <Input
+                    type="search"
+                    placeholder="Rechercher par nom, email, entreprise, projet..."
+                    value={filters.search ?? ''}
+                    onClear={() => onFilterChange?.({ search: '' })}
+                    onChange={(e) => onFilterChange?.({ search: e.target.value })}
+                    inputClassName="h-9"
+                    clearable
+                    prefix={<PiMagnifyingGlassBold className="size-4" />}
+                    className="flex-1"
+                />
+
+                {/* Filtre inline: Documents corrigés */}
+                <label className={[
+                'flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-2 transition-colors hover:border-primary  hover:bg-primary/5 hover:text-primary',
+                filters.hasSubmitDocumentsCorrected
+                    ? 'border-primary bg-primary/5'
+                    : 'border-muted bg-white hover:bg-gray-50',
+            ].join(' ')}>
+                <input
+                    type="checkbox"
+                    checked={Boolean(filters.hasSubmitDocumentsCorrected)}
+                    onChange={(e) => onFilterChange?.({ hasSubmitDocumentsCorrected: e.target.checked || undefined })}
+                    className="h-4 w-4 rounded accent-primary focus:ring-0"
+                />
+                <Text className={`${filters.hasSubmitDocumentsCorrected ? 'text-primary' : 'text-gray-700'}`}>
+                    Docs corrigés
+                </Text>
+            </label>
+                {/* <Button
+                    variant="outline"
+                    // color={filters.hasSubmitDocumentsCorrected ? 'primary' : 'DEFAULT' as any}
+                    className="h-9 gap-1.5 whitespace-nowrap primary"
+                    onClick={() => onFilterChange?.({
+                        hasSubmitDocumentsCorrected: filters.hasSubmitDocumentsCorrected ? undefined : true,
+                    })}
+                >
+                    {filters.hasSubmitDocumentsCorrected
+                        ? <PiCheckSquareDuotone className="size-4" />
+                        : <PiSquareDuotone className="size-4" />
+                    }
+                    Docs corrigés
+                </Button> */}
+            </Flex>
 
             <Flex align="center" gap="3" className="w-auto">
                 {isMultipleSelected && (
@@ -421,14 +455,21 @@ function FilterElements({
             </div> */}
 
             {/* ── Documents corrigés ───────────────────────────────── */}
-            <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-muted bg-white px-4 py-2.5 hover:bg-gray-50">
+            <label className={[
+                'flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-2.5 transition-colors',
+                filters.hasSubmitDocumentsCorrected
+                    ? 'border-primary bg-primary/5'
+                    : 'border-muted bg-white hover:bg-gray-50',
+            ].join(' ')}>
                 <input
                     type="checkbox"
                     checked={Boolean(filters.hasSubmitDocumentsCorrected)}
                     onChange={(e) => onFilterChange?.({ hasSubmitDocumentsCorrected: e.target.checked || undefined })}
-                    className="h-4 w-4 rounded border-gray-300 text-primary-600"
+                    className="h-4 w-4 rounded accent-primary"
                 />
-                <Text className="text-sm font-medium text-gray-700">Documents corrigés uniquement</Text>
+                <Text className={`text-sm font-medium ${filters.hasSubmitDocumentsCorrected ? 'text-primary' : 'text-gray-700'}`}>
+                    Documents corrigés uniquement
+                </Text>
             </label>
 
             {/* ── Reset ─────────────────────────────────────────────── */}
