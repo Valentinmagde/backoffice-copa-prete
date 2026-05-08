@@ -8,6 +8,7 @@ import { Button, Input, Text } from 'rizzui';
 import { useMedia } from '@core/hooks/use-media';
 import { Form } from '@core/ui/form';
 import { routes } from '@/config/routes';
+import { authApi } from '@/lib/api/endpoints/auth.api';
 import {
   forgetPasswordSchema,
   ForgetPasswordSchema,
@@ -20,17 +21,31 @@ const initialValues = {
 export default function ForgetPasswordForm() {
   const isMedium = useMedia('(max-width: 1200px)', false);
   const [reset, setReset] = useState({});
-  const onSubmit: SubmitHandler<ForgetPasswordSchema> = (data) => {
-    console.log('forgot password form', data);
-    toast.success(
-      <Text>
-        Un lien de réinitialisation a été envoyé à cette adresse e-mail:{' '}
-        <Text as="b" className="font-semibold">
-          {data.email}
+  const [isLoading, setIsLoading] = useState(false);
+
+  const onSubmit: SubmitHandler<ForgetPasswordSchema> = async (data) => {
+    setIsLoading(true);
+
+    try {
+      await authApi.forgotPassword(data.email);
+
+      toast.success(
+        <Text>
+          Un lien de réinitialisation a été envoyé à cette adresse e-mail:{' '}
+          <Text as="b" className="font-semibold">
+            {data.email}
+          </Text>
         </Text>
-      </Text>
-    );
-    setReset(initialValues);
+      );
+      setReset(initialValues);
+    } catch (error) {
+      console.error('Erreur forgot password form', error);
+      toast.error(
+        'Impossible d’envoyer le lien de réinitialisation. Veuillez réessayer plus tard.',
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -58,6 +73,7 @@ export default function ForgetPasswordForm() {
               className="w-full"
               type="submit"
               size={isMedium ? 'lg' : 'xl'}
+              isLoading={isLoading}
             >
               Réinitialiser 
             </Button>

@@ -102,6 +102,13 @@ interface XlsImportResult {
     total: number;
 }
 
+interface AttachedFile {
+    filename: string;
+    content: string; // base64
+    mimeType: string;
+    size: number;
+}
+
 export default function MailComposer() {
     const [mode, setMode] = useState<SendMode>('group');
     const [channel, setChannel] = useState<NotificationChannel>('EMAIL');
@@ -113,7 +120,9 @@ export default function MailComposer() {
     const [xlsResult, setXlsResult] = useState<XlsImportResult | null>(null);
     const [isParsingXls, setIsParsingXls] = useState(false);
     const [xlsCandidates, setXlsCandidates] = useState<typeof candidates>([]);
+    const [attachments, setAttachments] = useState<AttachedFile[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const attachmentInputRef = useRef<HTMLInputElement>(null);
     const { data: candidatesData, isLoading: isLoadingCandidates } = useMPMECandidatures({
         limit: -1,
         isProfileComplete: true,
@@ -145,6 +154,45 @@ export default function MailComposer() {
     const recipientCount = mode === 'group' ? (targetOption?.count ?? 0) : selectedCandidats.length;
 
     const { mutate: sendEmail, isPending } = useSendEmail();
+
+    const handleAttachmentChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
+
+        try {
+            for (const file of files) {
+                // Vérifier la taille (max 25 MB)
+                if (file.size > 25 * 1024 * 1024) {
+                    toast.error(`${file.name} dépasse 25 MB`);
+                    continue;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const content = event.target?.result as string;
+                    const base64Content = content.split(',')[1]; // Retirer le préfixe data:...;base64,
+                    
+                    setAttachments(prev => [...prev, {
+                        filename: file.name,
+                        content: base64Content,
+                        mimeType: file.type,
+                        size: file.size,
+                    }]);
+                    
+                    toast.success(`${file.name} ajouté`);
+                };
+                reader.readAsDataURL(file);
+            }
+        } catch (err: any) {
+            toast.error('Erreur lors de l\'ajout du fichier');
+        } finally {
+            if (attachmentInputRef.current) attachmentInputRef.current.value = '';
+        }
+    };
+
+    const handleRemoveAttachment = (filename: string) => {
+        setAttachments(prev => prev.filter(a => a.filename !== filename));
+    };
 
     const handleXlsImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -230,7 +278,7 @@ export default function MailComposer() {
             beneficiaryIds = selectedCandidats.map(id => parseInt(id));
         } else {
             const grouped = target.value === 'ALL' ? candidates : candidates.filter(c => c.status === target.value);
-            beneficiaryIds = grouped.map(c => c.id);
+            beneficiaryIds = [...new Set(grouped.map(c => c.id))];
             if (beneficiaryIds.length === 0) {
                 toast.error('Aucun candidat dans ce groupe');
                 return;
@@ -244,6 +292,7 @@ export default function MailComposer() {
             subject: channel !== 'SMS' ? subject : undefined,
             message,
             useAutoTemplate: false,
+            attachments: attachments.length > 0 ? attachments : undefined,
         };
 
         sendEmail(dto, {
@@ -252,6 +301,7 @@ export default function MailComposer() {
                 setMessage('');
                 setPreview(false);
                 setSelectedCandidats([]);
+                setAttachments([]);
                 toast.success('Email envoyé avec succès');
             },
             onError: (error: any) => {
@@ -460,7 +510,7 @@ export default function MailComposer() {
                     />
                     <div className="flex flex-wrap gap-2">
                         <Text className="text-xs text-gray-400">Variables disponibles :</Text>
-                        {['{{prenom}}', '{{nom}}', '{{code_candidature}}', '{{entreprise}}'].map(v => (
+                        {['{{prenom}}', '{{nom}}', '{{civilite}}', '{{code_candidature}}', '{{entreprise}}', '{{commentaire_rejet}}'].map(v => (
                             <button
                                 key={v}
                                 type="button"
@@ -516,6 +566,68 @@ export default function MailComposer() {
                             </div>
                         );
                     })()}
+
+                    {/* ── Pièces jointes ────────────────────────────────── */}
+                    {channel !== 'SMS' && (
+                        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                            <div className="mb-3 flex items-center justify-between">
+                                <div>
+                                    <Text className="text-sm font-semibold text-gray-800">Pièces jointes</Text>
+                                    <Text className="text-xs text-gray-500">Max 25 MB par fichier, formats: PDF, DOC, XLS, etc.</Text>
+                                </div>
+                            </div>
+                            
+                            <input
+                                ref={attachmentInputRef}
+                                type="file"
+                                multiple
+                                className="hidden"
+                                onChange={handleAttachmentChange}
+                            />
+                            
+                            <div className="flex items-center gap-2 mb-3">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-2"
+                                    onClick={() => attachmentInputRef.current?.click()}
+                                >
+                                    <PiFileXls className="size-4" />
+                                    Ajouter un fichier
+                                </Button>
+                                {attachments.length > 0 && (
+                                    <Text className="text-xs text-gray-600">
+                                        {attachments.length} fichier{attachments.length > 1 ? 's' : ''} attaché{attachments.length > 1 ? 's' : ''}
+                                    </Text>
+                                )}
+                            </div>
+
+                            {attachments.length > 0 && (
+                                <div className="space-y-2">
+                                    {attachments.map((att) => (
+                                        <div key={att.filename} className="flex items-center justify-between rounded bg-white p-2 border border-gray-200">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <PiFileXls className="size-4 shrink-0 text-gray-400" />
+                                                    <Text className="text-sm text-gray-700 truncate">{att.filename}</Text>
+                                                </div>
+                                                <Text className="text-xs text-gray-500">
+                                                    {(att.size / 1024 / 1024).toFixed(2)} MB
+                                                </Text>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveAttachment(att.filename)}
+                                                className="ml-2 text-gray-400 hover:text-red-500 transition-colors"
+                                            >
+                                                <PiXCircle className="size-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </HorizontalFormBlockWrapper>
 
@@ -574,6 +686,7 @@ export default function MailComposer() {
                             onClick={handleSend}
                             isLoading={isPending}
                             disabled={
+                                isPending ||
                                 (channel !== 'SMS' && !subject.trim()) ||
                                 !message || !message.replace(/<[^>]*>/g, '').trim() ||
                                 (mode === 'individual' && selectedCandidats.length === 0) ||

@@ -55,6 +55,11 @@ export interface SendEmailDto {
     subject?: string;
     message?: string;
     useAutoTemplate?: boolean;
+    attachments?: Array<{
+        filename: string;
+        content: string; // base64 encoded
+        mimeType?: string;
+    }>;
 }
 
 export interface EmailTemplate {
