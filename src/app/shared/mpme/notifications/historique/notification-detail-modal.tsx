@@ -151,12 +151,14 @@ export default function NotificationDetailModal({ notification }: NotificationDe
           </div>
 
           {/* Corps */}
-          <div
-            className="p-4 text-sm leading-relaxed text-gray-700"
-            dangerouslySetInnerHTML={{
-              __html: notification.content || notification.message || '<p class="text-gray-400 italic">Aucun contenu disponible.</p>',
-            }}
-          />
+          <div className="overflow-x-hidden p-4 [&_*]:max-w-full [&_img]:h-auto [&_table]:w-full [&_td]:break-words [&_div]:max-w-full">
+            <div
+              className="text-sm leading-relaxed text-gray-700"
+              dangerouslySetInnerHTML={{
+                __html: notification.content || notification.message || '<p class="text-gray-400 italic">Aucun contenu disponible.</p>',
+              }}
+            />
+          </div>
         </div>
 
         {/* Erreur */}
