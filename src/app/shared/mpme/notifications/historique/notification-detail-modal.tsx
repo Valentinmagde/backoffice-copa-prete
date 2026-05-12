@@ -140,18 +140,18 @@ export default function NotificationDetailModal({ notification }: NotificationDe
       </div>
 
       {/* Corps scrollable */}
-      <div className="max-h-[60vh] overflow-y-auto px-6 py-5 space-y-5">
+      <div className="px-6 py-5 space-y-5">
 
         {/* Contenu du message */}
-        <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+        <div className="bg-white">
           {/* En-tête email */}
-          <div className="border-b border-gray-100 bg-gray-50 px-4 py-3">
+          <div className="border-b border-gray-100 py-3">
             <Text className="text-xs text-gray-400">Sujet</Text>
             <Text className="font-semibold text-gray-900">{notification.subject || '—'}</Text>
           </div>
 
           {/* Corps */}
-          <div className="overflow-x-hidden p-4 [&_*]:max-w-full [&_img]:h-auto [&_table]:w-full [&_td]:break-words [&_div]:max-w-full">
+          <div className="max-h-72 overflow-y-auto overflow-x-hidden pt-4 [&_*]:max-w-full [&_img]:h-auto [&_table]:w-full [&_td]:break-words">
             <div
               className="text-sm leading-relaxed text-gray-700"
               dangerouslySetInnerHTML={{
