@@ -140,7 +140,7 @@ export default function NotificationDetailModal({ notification }: NotificationDe
       </div>
 
       {/* Corps scrollable */}
-      <div className="px-6 py-5 space-y-5">
+      <div className="bg-white px-6 py-5 space-y-5">
 
         {/* Contenu du message */}
         <div className="bg-white">
@@ -151,7 +151,7 @@ export default function NotificationDetailModal({ notification }: NotificationDe
           </div>
 
           {/* Corps */}
-          <div className="max-h-72 overflow-y-auto overflow-x-hidden pt-4 [&_*]:max-w-full [&_img]:h-auto [&_table]:w-full [&_td]:break-words">
+          <div className="max-h-72 overflow-y-auto overflow-x-hidden pt-4 pr-2 [&_*]:max-w-full [&_img]:h-auto [&_table]:w-full [&_td]:break-words">
             <div
               className="text-sm leading-relaxed text-gray-700"
               dangerouslySetInnerHTML={{

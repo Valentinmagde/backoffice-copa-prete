@@ -37,9 +37,17 @@ export default function NotificationsHistoriqueTable() {
   const { mutate: deleteNotification } = useDeleteNotification();
   const { mutate: deleteMultiple } = useDeleteMultipleNotifications();
 
-  const notifications = data?.data || [];
+  const rawNotifications = data?.data || [];
   const totalItems = data?.meta?.total || 0;
   const totalPages = data?.meta?.totalPages || 1;
+
+  // Dédupliquer : même destinataire + même contenu HTML (whitespace ignoré)
+  const notifications = rawNotifications.filter((notif, index, arr) => {
+    const normalizeHtml = (html?: string) => (html ?? '').replace(/\s+/g, ' ').trim();
+    return arr.findIndex(
+      (n) => n.recipientEmail === notif.recipientEmail && normalizeHtml(n.content) === normalizeHtml(notif.content)
+    ) === index;
+  });
 
   // ✅ Obtenir les IDs sélectionnés
   const selectedRowIds = Object.keys(rowSelection).filter(key => rowSelection[key]);
