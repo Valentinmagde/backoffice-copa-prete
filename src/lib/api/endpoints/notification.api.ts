@@ -134,6 +134,7 @@ class NotificationApi {
             status: this.getNotificationStatus(apiNotification.isSent, apiNotification.context),
             subject: apiNotification.title,
             message: this.getMessage(apiNotification.context, apiNotification.content),
+            content: apiNotification.content,
             sentAt: apiNotification.sentAt || apiNotification.createdAt,
             error: this.getError(apiNotification.context),
             sentBy: {

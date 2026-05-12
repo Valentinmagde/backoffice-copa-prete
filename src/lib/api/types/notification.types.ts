@@ -11,6 +11,7 @@ export interface Notification {
     status: NotificationStatus;
     subject: string;
     message?: string;
+    content?: string;
     sentAt: string;
     error?: string;
     sentBy: {
