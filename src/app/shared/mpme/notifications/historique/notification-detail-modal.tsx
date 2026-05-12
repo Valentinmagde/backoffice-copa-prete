@@ -151,7 +151,7 @@ export default function NotificationDetailModal({ notification }: NotificationDe
           </div>
 
           {/* Corps */}
-          <div className="max-h-72 overflow-y-auto overflow-x-hidden pt-4 pr-2 [&_*]:max-w-full [&_img]:h-auto [&_table]:w-full [&_td]:break-words">
+          <div className="max-h-72 overflow-y-auto overflow-x-hidden pt-4 pr-2 [&_*]:max-w-full [&_*]:!shadow-none [&_img]:h-auto [&_table]:w-full [&_table]:!bg-transparent [&_td]:break-words [&_td]:!bg-transparent [&_div]:!bg-transparent">
             <div
               className="text-sm leading-relaxed text-gray-700"
               dangerouslySetInnerHTML={{
