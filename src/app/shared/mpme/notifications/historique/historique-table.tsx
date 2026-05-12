@@ -16,11 +16,15 @@ import { notificationColumns, Notification } from './columns';
 import NotificationsFilters from './notifications-filters';
 import { notificationApi } from '@/lib/api/endpoints/notification.api';
 import toast from 'react-hot-toast';
+import { useModal } from '@/app/shared/modal-views/use-modal';
+import NotificationDetailModal from './notification-detail-modal';
 
 export default function NotificationsHistoriqueTable() {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [filters, setFilters] = useState({});
   const [rowSelection, setRowSelection] = useState({}); // ✅ État de sélection
+
+  const { openModal } = useModal();
 
   // API hooks
   const { data, isLoading, refetch } = useNotifications({
@@ -46,7 +50,10 @@ export default function NotificationsHistoriqueTable() {
     tableData: notifications,
     columnConfig: notificationColumns(
       (notification) => resendEmail(notification.id),
-      (notification) => console.log('View', notification),
+      (notification) => openModal({
+        view: <NotificationDetailModal notification={notification} />,
+        customSize: 600,
+      }),
       (notification) => deleteNotification(notification.id)
     ),
     options: {

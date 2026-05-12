@@ -13,6 +13,7 @@ import {
   PiDeviceMobile,
   PiBell,
   PiWhatsappLogo,
+  PiEye,
 } from 'react-icons/pi';
 
 type NotificationStatus = 'SENT' | 'FAILED' | 'PENDING';
@@ -70,7 +71,7 @@ const SENT_BY_CONFIG: Record<SentByType, { label: string; icon: any }> = {
 export const notificationColumns = (
   onResend?: (notification: Notification) => void,
   onView?: (notification: Notification) => void,
-  onDelete?: (notification: Notification) => void
+  _onDelete?: (notification: Notification) => void
 ) => [
   {
     id: 'select',
@@ -205,18 +206,31 @@ export const notificationColumns = (
     header: '',
     cell: ({ row }: any) => {
       const notification = row.original;
-      return notification.status === 'FAILED' ? (
-        <Button
-          size="sm"
-          variant="outline"
-          className="gap-1.5 text-xs"
-          onClick={() => onResend?.(notification)}
-        >
-          <PiArrowClockwise className="size-3.5" />
-          Renvoyer
-        </Button>
-      ) : null;
+      return (
+        <div className="flex items-center gap-1.5">
+          <Button
+            size="sm"
+            variant="outline"
+            className="p-1.5"
+            onClick={() => onView?.(notification)}
+            title="Voir les détails"
+          >
+            <PiEye className="size-4" />
+          </Button>
+          {notification.status === 'FAILED' && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5 text-xs"
+              onClick={() => onResend?.(notification)}
+            >
+              <PiArrowClockwise className="size-3.5" />
+              Renvoyer
+            </Button>
+          )}
+        </div>
+      );
     },
-    size: 50,
+    size: 170,
   },
 ];
