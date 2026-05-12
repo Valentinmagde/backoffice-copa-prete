@@ -82,6 +82,23 @@ class NotificationApi {
         return response.blob();
     }
 
+    async getMyNotifications(params: { limit?: number } = {}): Promise<{ data: any[]; meta: any }> {
+        const query = params.limit ? `?limit=${params.limit}` : '';
+        return apiClient.get(`${this.base}/my${query}`);
+    }
+
+    async getMyUnreadCount(): Promise<{ unreadCount: number }> {
+        return apiClient.get(`${this.base}/my/unread/count`);
+    }
+
+    async markMyAsRead(ids?: number[]): Promise<void> {
+        return apiClient.put(`${this.base}/my/read`, ids?.length ? { notificationIds: ids } : { markAll: true });
+    }
+
+    async markOneAsRead(id: number): Promise<void> {
+        return apiClient.put(`${this.base}/my/${id}/read`, {});
+    }
+
     async sendPreselectedEmail(id: number, comment: string): Promise<any> {
         return apiClient.post(`${this.base}/send/preselected/${id}`, { comment });
     }

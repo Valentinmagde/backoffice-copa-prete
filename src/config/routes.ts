@@ -26,6 +26,13 @@ export const routes = {
       // edit: (id: number | string) => `/mpme/notifications/${id}/edit`,
       // create: '/mpme/notifications/create',
     },
+    contacts: {
+      list: '/mpme/contacts',
+    },
+  },
+  complaints: {
+    list: '/mpme/complaints',
+    details: (id: number | string) => `/mpme/complaints/${id}`,
   },
   cohorts: {
     list: '/cohorts',

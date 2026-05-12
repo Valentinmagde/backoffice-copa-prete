@@ -6,6 +6,34 @@ import {
 } from '@tanstack/react-query';
 import { notificationApi } from '../endpoints/notification.api';
 import { NotificationFilters, SendEmailDto } from '../types/notification.types';
+
+export function useMyNotifications(limit = 10) {
+    return useQuery({
+        queryKey: ['notifications', 'my', limit],
+        queryFn: () => notificationApi.getMyNotifications({ limit }),
+        staleTime: 30 * 1000,
+        refetchInterval: 60 * 1000,
+    });
+}
+
+export function useMyUnreadCount() {
+    return useQuery({
+        queryKey: ['notifications', 'my', 'unread-count'],
+        queryFn: () => notificationApi.getMyUnreadCount(),
+        staleTime: 30 * 1000,
+        refetchInterval: 60 * 1000,
+    });
+}
+
+export function useMarkAsRead() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: (ids?: number[]) => notificationApi.markMyAsRead(ids),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['notifications', 'my'] });
+        },
+    });
+}
 // import toast from 'react-hot-toast';
 
 export const notificationKeys = {

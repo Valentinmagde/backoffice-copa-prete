@@ -1,16 +1,28 @@
-import { DUMMY_ID } from '@/config/constants';
+import React from 'react';
 import { routes } from '@/config/routes';
 import {
   PiBriefcaseDuotone,
   PiCalendar,
   PiChatCenteredDotsDuotone,
+  PiEnvelopeSimpleDuotone,
   PiFolderLockDuotone,
   PiHouseLineDuotone,
   PiUserCircleDuotone,
+  PiWarningDuotone,
 } from 'react-icons/pi';
 
+export type MenuItem = {
+  name: string;
+  href?: string;
+  icon?: React.ReactElement;
+  badge?: string;
+  allowedRoles?: string[];
+  requiredPermissions?: string[];
+  dropdownItems?: MenuItem[];
+};
+
 // Note: do not add href in the label object, it is rendering as label
-export const menuItems = [
+export const menuItems: MenuItem[] = [
   // label start
   {
     name: 'Aperçu',
@@ -46,9 +58,21 @@ export const menuItems = [
       {
         name: 'Notifications',
         href: routes.mpme.notifications.list,
-        allowedRoles: ['SUPER_ADMIN', 'ADMIN']
-      }
+        allowedRoles: ['SUPER_ADMIN', 'ADMIN'],
+      },
     ],
+  },
+  {
+    name: 'Plaintes',
+    href: routes.complaints.list,
+    icon: <PiWarningDuotone />,
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER'],
+  },
+  {
+    name: 'Messages de contact',
+    href: routes.mpme.contacts.list,
+    icon: <PiEnvelopeSimpleDuotone />,
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER'],
   },
   {
     name: 'Gestion des cohortes',

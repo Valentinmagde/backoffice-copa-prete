@@ -21,6 +21,17 @@ export interface Notification {
     };
     sentByType: SentByType;
     triggerAction?: 'PRESELECTION' | 'REJECTION' | 'SELECTION';
+    channel?: 'EMAIL' | 'SMS' | 'IN_APP';
+}
+
+export interface UserNotification {
+    id: number;
+    title: string;
+    content: string;
+    notificationType: string;
+    isRead: boolean;
+    readAt: string | null;
+    createdAt: string;
 }
 
 export interface NotificationFilters {
