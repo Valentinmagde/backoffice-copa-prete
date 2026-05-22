@@ -112,7 +112,7 @@ interface AttachedFile {
 export default function MailComposer() {
     const [mode, setMode] = useState<SendMode>('group');
     const [channel, setChannel] = useState<NotificationChannel>('EMAIL');
-    const [target, setTarget] = useState<any>({ label: 'Tous les candidats', value: 'ALL' });
+    const [target, setTarget] = useState<string>('ALL');
     const [selectedCandidats, setSelectedCandidats] = useState<string[]>([]);
     const [subject, setSubject] = useState('');
     const [message, setMessage] = useState('');
@@ -150,7 +150,7 @@ export default function MailComposer() {
     };
 
     const targetOptions = getTargetOptions(counts);
-    const targetOption = targetOptions.find(t => t.value === target || t.value === target.value);
+    const targetOption = targetOptions.find(t => t.value === target);
     const recipientCount = mode === 'group' ? (targetOption?.count ?? 0) : selectedCandidats.length;
 
     const { mutate: sendEmail, isPending } = useSendEmail();
@@ -275,10 +275,10 @@ export default function MailComposer() {
         let beneficiaryIds: number[] = [];
 
         if (mode === 'individual') {
-            beneficiaryIds = selectedCandidats.map(id => parseInt(id));
+            beneficiaryIds = Array.from(new Set(selectedCandidats.map(id => parseInt(id))));
         } else {
-            const grouped = target.value === 'ALL' ? candidates : candidates.filter(c => c.status === target.value);
-            beneficiaryIds = [...new Set(grouped.map(c => c.id))];
+            const grouped = target === 'ALL' ? candidates : candidates.filter(c => c.status === target);
+            beneficiaryIds = Array.from(new Set(grouped.map(c => c.id)));
             if (beneficiaryIds.length === 0) {
                 toast.error('Aucun candidat dans ce groupe');
                 return;
@@ -395,7 +395,7 @@ export default function MailComposer() {
                                     value: t.value,
                                 }))}
                                 value={target}
-                                onChange={(v: any) => setTarget(v)}
+                                onChange={(v: any) => setTarget(typeof v === 'string' ? v : v?.value ?? 'ALL')}
                             />
                             <div className="flex items-center gap-2 rounded-lg bg-gray-50 border border-muted p-3">
                                 <PiUsers className="size-4 text-gray-400" />
@@ -644,7 +644,7 @@ export default function MailComposer() {
                             <Text className="text-xs text-gray-400">
                                 À :{' '}
                                 {mode === 'group'
-                                    ? targetOption?.label
+                                    ? `${targetOption?.label ?? target} (${recipientCount})`
                                     : selectedCandidats.length === 1
                                     ? selectedCandidatsData[0]?.email ?? '—'
                                     : `${selectedCandidats.length} candidats sélectionnés`}
