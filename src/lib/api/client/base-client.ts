@@ -107,27 +107,26 @@ class ApiClient {
       try {
         const session = await getSession();
         if (session?.refreshToken) {
-          // Appel au endpoint de refresh
-          const response = await axios.post(`${process.env.NESTJS_API_URL}/auth/refresh`, {
-            refreshToken: session.refreshToken,
-          });
+          const response = await axios.post(
+            `${process.env.NEXT_PUBLIC_NESTJS_API_URL}/auth/refresh`,
+            { refreshToken: session.refreshToken },
+          );
 
           const { accessToken } = response.data;
-          
-          // Mettre à jour la session
-          await this.updateSession(accessToken);
-          
-          // Retenter les requêtes en attente
+
           this.processQueue(null, accessToken);
-          
-          // Réexécuter la requête originale
+
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           return this.client(originalRequest);
+        } else {
+          // Pas de refresh token → session expirée
+          this.processQueue(new Error('Session expirée'), null);
+          await signOut({ redirect: true, callbackUrl: '/auth/signin' });
+          return Promise.reject(new Error('Session expirée'));
         }
       } catch (refreshError) {
         this.processQueue(refreshError, null);
-        // Rediriger vers la page de connexion
-        await signOut({ redirect: true, callbackUrl: '/signin' });
+        await signOut({ redirect: true, callbackUrl: '/auth/signin' });
         return Promise.reject(refreshError);
       } finally {
         this.isRefreshing = false;
@@ -155,19 +154,6 @@ class ApiClient {
       }
     });
     this.failedQueue = [];
-  }
-
-  private async updateSession(accessToken: string) {
-    // Mettre à jour la session NextAuth avec le nouveau token
-    const session = await getSession();
-    if (session) {
-      // Appel à votre API pour mettre à jour la session
-      await fetch('/api/auth/session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...session, accessToken }),
-      });
-    }
   }
 
   private generateRequestId(): string {

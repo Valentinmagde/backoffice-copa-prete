@@ -112,8 +112,10 @@ interface AttachedFile {
 export default function MailComposer() {
     const [mode, setMode] = useState<SendMode>('group');
     const [channel, setChannel] = useState<NotificationChannel>('EMAIL');
+    const [lang, setLang] = useState<'fr' | 'rn'>('fr');
     const [target, setTarget] = useState<string>('ALL');
     const [selectedCandidats, setSelectedCandidats] = useState<string[]>([]);
+    const [sent, setSent] = useState(false);
     const [subject, setSubject] = useState('');
     const [message, setMessage] = useState('');
     const [preview, setPreview] = useState(false);
@@ -290,11 +292,13 @@ export default function MailComposer() {
             channel,
             beneficiaryIds,
             subject: channel !== 'SMS' ? subject : undefined,
+            lang,
             message,
             useAutoTemplate: false,
             attachments: attachments.length > 0 ? attachments : undefined,
         };
 
+        setSent(true);
         sendEmail(dto, {
             onSuccess: () => {
                 setSubject('');
@@ -302,10 +306,11 @@ export default function MailComposer() {
                 setPreview(false);
                 setSelectedCandidats([]);
                 setAttachments([]);
+                setSent(false);
                 toast.success('Email envoyé avec succès');
             },
             onError: (error: any) => {
-                toast.error(error?.message || "Erreur lors de l'envoi");
+                toast.error(error?.message || "Erreur lors de l'envoi — l'envoi a peut-être déjà été effectué, ne renvoyez pas sans vérifier l'historique.");
             },
         });
     };
@@ -375,6 +380,33 @@ export default function MailComposer() {
                 </div>
             </HorizontalFormBlockWrapper>
 
+            {/* Langue du message */}
+            <HorizontalFormBlockWrapper
+                title="Langue du message"
+                description="Détermine la traduction des variables (ex: {{civilite}})."
+                descriptionClassName="max-w-sm"
+            >
+                <div className="col-span-2 flex items-center gap-4">
+                    {([
+                        { value: 'fr', label: 'Français', sub: 'Monsieur / Madame' },
+                        { value: 'rn', label: 'Kirundi',  sub: 'Mupfasoni / Mushingantahe' },
+                    ] as const).map(({ value, label, sub }) => (
+                        <button
+                            key={value}
+                            onClick={() => setLang(value)}
+                            className={`flex items-center gap-3 rounded-xl border p-4 w-full transition-all ${
+                                lang === value ? 'border-primary bg-primary-lighter' : 'border-muted hover:border-gray-300'
+                            }`}
+                        >
+                            <div className="text-left">
+                                <Text className="text-sm font-semibold text-gray-800">{label}</Text>
+                                <Text className="text-xs text-gray-500">{sub}</Text>
+                            </div>
+                        </button>
+                    ))}
+                </div>
+            </HorizontalFormBlockWrapper>
+
             {/* Destinataires */}
             <HorizontalFormBlockWrapper
                 title="Destinataires"
@@ -394,7 +426,10 @@ export default function MailComposer() {
                                     label: `${t.label} (${t.count})`,
                                     value: t.value,
                                 }))}
-                                value={target}
+                                value={targetOptions.find(t => t.value === target)
+                                    ? { label: `${targetOption?.label} (${targetOption?.count ?? 0})`, value: target }
+                                    : undefined
+                                }
                                 onChange={(v: any) => setTarget(typeof v === 'string' ? v : v?.value ?? 'ALL')}
                             />
                             <div className="flex items-center gap-2 rounded-lg bg-gray-50 border border-muted p-3">
@@ -684,9 +719,9 @@ export default function MailComposer() {
                         <Button
                             className="gap-2"
                             onClick={handleSend}
-                            isLoading={isPending}
+                            isLoading={isPending || sent}
                             disabled={
-                                isPending ||
+                                isPending || sent ||
                                 (channel !== 'SMS' && !subject.trim()) ||
                                 !message || !message.replace(/<[^>]*>/g, '').trim() ||
                                 (mode === 'individual' && selectedCandidats.length === 0) ||
