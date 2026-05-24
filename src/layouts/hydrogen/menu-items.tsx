@@ -4,9 +4,10 @@ import {
   PiBriefcaseDuotone,
   PiCalendar,
   PiChatCenteredDotsDuotone,
+  PiClipboardTextDuotone,
   PiEnvelopeSimpleDuotone,
   PiFolderLockDuotone,
-  PiHouseLineDuotone,
+PiHouseLineDuotone,
   PiUserCircleDuotone,
   PiWarningDuotone,
 } from 'react-icons/pi';
@@ -23,20 +24,20 @@ export type MenuItem = {
 
 // Note: do not add href in the label object, it is rendering as label
 export const menuItems: MenuItem[] = [
-  // label start
+  // ── Aperçu ──────────────────────────────────────────────────────
   {
     name: 'Aperçu',
   },
-  // label end
   {
     name: 'Tableau de bord',
-    href: '/',
+    href: routes.executive.dashboard,
     icon: <PiHouseLineDuotone />,
     allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR', 'TRAINER', 'MENTOR', 'PARTNER'],
   },
-  // label start
+
+  // ── Gestion ─────────────────────────────────────────────────────
   {
-    name: 'Pages',
+    name: 'Gestion',
   },
   {
     name: 'MPME & Coopératives',
@@ -47,7 +48,6 @@ export const menuItems: MenuItem[] = [
       {
         name: 'Liste des inscrits',
         href: routes.mpme.inscrits.list,
-        badge: '',
         allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR', 'TRAINER', 'MENTOR', 'PARTNER'],
       },
       {
@@ -63,6 +63,35 @@ export const menuItems: MenuItem[] = [
     ],
   },
   {
+    name: "Plans d'affaires",
+    href: routes.businessPlans.list,
+    icon: <PiClipboardTextDuotone />,
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR'],
+  },
+  {
+    name: 'Cohortes',
+    href: routes.cohorts.list,
+    icon: <PiCalendar />,
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN'],
+  },
+  // {
+  //   name: 'Formations',
+  //   href: routes.formations.list,
+  //   icon: <PiGraduationCapDuotone />,
+  //   allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'TRAINER'],
+  // },
+  // {
+  //   name: 'Subventions',
+  //   href: routes.subventions.list,
+  //   icon: <PiHandCoinsDuotone />,
+  //   allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER'],
+  // },
+
+  // ── Notifications ───────────────────────────────────────────────
+  {
+    name: 'Notifications',
+  },
+  {
     name: 'Plaintes',
     href: routes.complaints.list,
     icon: <PiWarningDuotone />,
@@ -74,12 +103,8 @@ export const menuItems: MenuItem[] = [
     icon: <PiEnvelopeSimpleDuotone />,
     allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER'],
   },
-  {
-    name: 'Gestion des cohortes',
-    href: routes.cohorts.list,
-    icon: <PiCalendar />,
-    allowedRoles: ['SUPER_ADMIN', 'ADMIN'],
-  },
+
+  // ── Paramètres ──────────────────────────────────────────────────
   {
     name: 'Paramètres',
   },
@@ -101,5 +126,4 @@ export const menuItems: MenuItem[] = [
     icon: <PiChatCenteredDotsDuotone />,
     allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR', 'TRAINER', 'MENTOR', 'PARTNER'],
   },
-  // label end
 ];
