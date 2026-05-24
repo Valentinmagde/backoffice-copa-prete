@@ -34,6 +34,21 @@ export const routes = {
     list: '/mpme/complaints',
     details: (id: number | string) => `/mpme/complaints/${id}`,
   },
+  formations: {
+    list: '/formations',
+    sessions: '/formations/sessions',
+    sessionDetails: (id: number | string) => `/formations/sessions/${id}`,
+  },
+  subventions: {
+    list: '/subventions',
+    details: (id: number | string) => `/subventions/${id}`,
+  },
+  businessPlans: {
+    list: '/plans-affaires',
+    details: (id: number | string) => `/plans-affaires/${id}`,
+    documents: (id: number | string) => `/plans-affaires/${id}/documents`,
+    evaluations: (id: number | string) => `/plans-affaires/${id}/evaluations`,
+  },
   cohorts: {
     list: '/cohorts',
     details: (id: number | string) => `/cohorts/${id}`,

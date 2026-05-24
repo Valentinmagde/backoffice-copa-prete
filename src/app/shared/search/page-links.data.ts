@@ -10,38 +10,79 @@ export interface PageLink {
 
 // Note: do not add href in the label object, it is rendering as label
 export const pageLinks: PageLink[] = [
-  // label start
+  // ── Aperçu ──────────────────────────────────────────────────────
   {
-    name: 'Accueil',
+    name: 'Aperçu',
   },
-  // label end
   {
     name: 'Tableau de bord',
     href: routes.executive.dashboard,
     allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR', 'TRAINER', 'MENTOR', 'PARTNER'],
   },
+
+  // ── Gestion ─────────────────────────────────────────────────────
   {
-    name: 'Pages',
+    name: 'Gestion',
   },
   {
-    name: 'MPME & Coopératives',
-    href: routes.settings.rolesPermissions,
+    name: 'Inscrits MPME & Coopératives',
+    href: routes.mpme.inscrits.list,
     allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR', 'TRAINER', 'MENTOR', 'PARTNER'],
   },
   {
-    name: 'Gestion des cohortes',
+    name: 'Dossiers de candidature',
+    href: routes.mpme.candidatures.list,
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR', 'TRAINER', 'MENTOR', 'PARTNER'],
+  },
+  {
+    name: 'Notifications',
+    href: routes.mpme.notifications.list,
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN'],
+  },
+  {
+    name: 'Formations',
+    href: routes.formations.list,
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'TRAINER'],
+  },
+  {
+    name: 'Subventions',
+    href: routes.subventions.list,
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER'],
+  },
+  {
+    name: "Plans d'affaires",
+    href: routes.businessPlans.list,
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR'],
+  },
+  {
+    name: 'Cohortes',
     href: routes.cohorts.list,
     allowedRoles: ['SUPER_ADMIN', 'ADMIN'],
   },
-  // label start
+
+  // ── Communication ────────────────────────────────────────────────
+  {
+    name: 'Communication',
+  },
+  {
+    name: 'Plaintes',
+    href: routes.complaints.list,
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER'],
+  },
+  {
+    name: 'Messages de contact',
+    href: routes.mpme.contacts.list,
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER'],
+  },
+
+  // ── Paramètres ──────────────────────────────────────────────────
   {
     name: 'Paramètres',
   },
-  // label end
   {
     name: 'Rôles & permissions',
     href: routes.settings.rolesPermissions,
-    allowedRoles: ['SUPER_ADMIN', 'ADMIN'],
+    allowedRoles: ['SUPER_ADMIN'],
   },
   {
     name: 'Profil',
@@ -49,48 +90,8 @@ export const pageLinks: PageLink[] = [
     allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR', 'TRAINER', 'MENTOR', 'PARTNER'],
   },
   {
-    name: 'Paramètres du profil',
+    name: 'Paramètres du compte',
     href: routes.settings.profileSettings,
     allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR', 'TRAINER', 'MENTOR', 'PARTNER'],
   },
-  // {
-  //   name: 'Préférences de notification',
-  //   href: routes.settings.notificationPreference,
-  // },
-  // {
-  //   name: 'Informations personnelles',
-  //   href: routes.settings.personalInformation,
-  // },
-  // {
-  //   name: 'Newsletter',
-  //   href: routes.settings.newsletter,
-  // },
-  // {
-  //   name: 'Multi Step',
-  //   href: routes.forms.multiStep,
-  // },
-  // label start
-  // {
-  //   name: 'Pages',
-  // },
-  // {
-  //   name: 'Access Denied',
-  //   href: routes.accessDenied,
-  // },
-  // {
-  //   name: 'Not Found',
-  //   href: routes.notFound,
-  // },
-  // {
-  //   name: 'Maintenance',
-  //   href: routes.maintenance,
-  // },
-  // {
-  //   name: 'Blank',
-  //   href: routes.blank,
-  // },
-  // // label start
-  // {
-  //   name: 'Authentication',
-  // },
 ];

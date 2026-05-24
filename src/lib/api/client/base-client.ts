@@ -89,8 +89,10 @@ class ApiClient {
   private async handleError(error: AxiosError) {
     const originalRequest = error.config as any;
     
-    // Gestion du refresh token
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Gestion du refresh token — uniquement pour les requêtes idempotentes (GET)
+    // Les POST/PUT/PATCH/DELETE ne sont pas retentés pour éviter les doubles envois
+    const isIdempotent = !originalRequest.method || originalRequest.method.toUpperCase() === 'GET';
+    if (error.response?.status === 401 && !originalRequest._retry && isIdempotent) {
       if (this.isRefreshing) {
         return new Promise((resolve, reject) => {
           this.failedQueue.push({ resolve, reject });
