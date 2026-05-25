@@ -7,6 +7,7 @@ export function useBusinessPlans(params?: { search?: string; page?: number; limi
     queryKey: ['business-plans', params],
     queryFn: () => businessPlanApi.getAll(params),
     staleTime: 2 * 60 * 1000,
+    placeholderData: (prevData) => prevData,
   });
 }
 

@@ -171,10 +171,6 @@ export default function BusinessPlansList() {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [search]);
 
-  useEffect(() => {
-    table.setPageIndex(pagination.pageIndex);
-  }, [pagination.pageIndex]);
-
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -191,7 +187,9 @@ export default function BusinessPlansList() {
           prefix={<PiMagnifyingGlassBold className="size-4" />}
           className="flex-1 max-w-lg"
         />
-        <Text className="text-sm text-gray-500">{total} plan(s) d'affaires</Text>
+        {total > 0 && (
+          <Text className="text-sm text-gray-500">{total} plan(s) d'affaires</Text>
+        )}
       </div>
 
       <Table
