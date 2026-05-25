@@ -52,7 +52,9 @@ export function SidebarMenu() {
         .filter(Boolean) as MenuItem[];
     };
 
-    return filterItems(menuItems);
+    const raw = filterItems(menuItems);
+    // Remove section labels whose next sibling is not a navigable item
+    return raw.filter((item, i, arr) => !!item.href || !!arr[i + 1]?.href);
   }, [hasAnyRole, hasAnyPermission]);
 
   if (isLoading) {

@@ -11,6 +11,7 @@ import { Badge, Popover, Text, Title } from 'rizzui';
 import { useMyNotifications, useMyUnreadCount, useMarkAsRead } from '@/lib/api/hooks/use-notifications';
 import type { UserNotification } from '@/lib/api/types/notification.types';
 import { routes } from '@/config/routes';
+import { useAuthRoles } from '@/lib/api/hooks/use-auth-roles';
 
 dayjs.extend(relativeTime);
 dayjs.locale('fr');
@@ -50,6 +51,8 @@ function NotificationItem({ item, onRead }: { item: UserNotification; onRead: (i
 function NotificationsList({ setIsOpen }: { setIsOpen: (v: boolean) => void }) {
   const { data, isLoading } = useMyNotifications(15);
   const { mutate: markAsRead } = useMarkAsRead();
+  const { hasAnyRole } = useAuthRoles();
+  const canSeeAllNotifications = hasAnyRole('SUPER_ADMIN', 'ADMIN');
   const notifications: UserNotification[] = data?.data ?? [];
 
   const handleMarkAll = () => markAsRead(undefined);
@@ -87,13 +90,15 @@ function NotificationsList({ setIsOpen }: { setIsOpen: (v: boolean) => void }) {
         )}
       </div>
 
-      <Link
-        href={routes.mpme.notifications.list}
-        onClick={() => setIsOpen(false)}
-        className="block px-6 pb-0.5 pt-3 text-center text-sm hover:underline"
-      >
-        Voir toutes les notifications
-      </Link>
+      {canSeeAllNotifications && (
+        <Link
+          href={routes.mpme.notifications.list}
+          onClick={() => setIsOpen(false)}
+          className="block px-6 pb-0.5 pt-3 text-center text-sm hover:underline"
+        >
+          Voir toutes les notifications
+        </Link>
+      )}
     </div>
   );
 }

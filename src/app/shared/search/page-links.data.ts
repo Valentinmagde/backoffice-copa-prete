@@ -27,12 +27,12 @@ export const pageLinks: PageLink[] = [
   {
     name: 'Inscrits MPME & Coopératives',
     href: routes.mpme.inscrits.list,
-    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR', 'TRAINER', 'MENTOR', 'PARTNER'],
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'TRAINER', 'MENTOR', 'PARTNER'],
   },
   {
     name: 'Dossiers de candidature',
     href: routes.mpme.candidatures.list,
-    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR', 'TRAINER', 'MENTOR', 'PARTNER'],
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'TRAINER', 'MENTOR', 'PARTNER'],
   },
   {
     name: 'Notifications',
@@ -52,7 +52,12 @@ export const pageLinks: PageLink[] = [
   {
     name: "Plans d'affaires",
     href: routes.businessPlans.list,
-    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR'],
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER'],
+  },
+  {
+    name: 'Évaluations',
+    href: routes.evaluation.search,
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'EVALUATOR'],
   },
   {
     name: 'Cohortes',

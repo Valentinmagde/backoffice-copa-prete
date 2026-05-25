@@ -7,7 +7,8 @@ import {
   PiClipboardTextDuotone,
   PiEnvelopeSimpleDuotone,
   PiFolderLockDuotone,
-PiHouseLineDuotone,
+  PiHouseLineDuotone,
+  PiListChecksDuotone,
   PiUserCircleDuotone,
   PiWarningDuotone,
 } from 'react-icons/pi';
@@ -43,17 +44,17 @@ export const menuItems: MenuItem[] = [
     name: 'MPME & Coopératives',
     href: '#',
     icon: <PiBriefcaseDuotone />,
-    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR', 'TRAINER', 'MENTOR', 'PARTNER'],
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'TRAINER', 'MENTOR', 'PARTNER'],
     dropdownItems: [
       {
         name: 'Liste des inscrits',
         href: routes.mpme.inscrits.list,
-        allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR', 'TRAINER', 'MENTOR', 'PARTNER'],
+        allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'TRAINER', 'MENTOR', 'PARTNER'],
       },
       {
         name: 'Dossiers de candidature',
         href: routes.mpme.candidatures.list,
-        allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR', 'TRAINER', 'MENTOR', 'PARTNER'],
+        allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'TRAINER', 'MENTOR', 'PARTNER'],
       },
       {
         name: 'Notifications',
@@ -66,7 +67,13 @@ export const menuItems: MenuItem[] = [
     name: "Plans d'affaires",
     href: routes.businessPlans.list,
     icon: <PiClipboardTextDuotone />,
-    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR'],
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER'],
+  },
+  {
+    name: 'Évaluation',
+    href: routes.evaluation.search,
+    icon: <PiListChecksDuotone />,
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'EVALUATOR'],
   },
   {
     name: 'Cohortes',

@@ -12,7 +12,7 @@ import {
 } from '@/lib/api/hooks/use-evaluateurs';
 import { useBusinessPlanByBeneficiary } from '@/lib/api/hooks/use-business-plan';
 import type { Evaluation, EvaluationAssignment, EvaluationInput } from '@/lib/api/types/evaluateur.types';
-import { SCORE_CRITERIA as CRITERIA } from '@/lib/api/types/evaluateur.types';
+import { SCORE_CRITERIA as CRITERIA, SCORE_LABELS, TOTAL_MAX, RECOMMENDATION_OPTIONS } from '@/lib/api/types/evaluateur.types';
 
 const ASSIGNMENT_STATUS: Record<string, { label: string; color: 'success' | 'warning' | 'info' }> = {
   PENDING:     { label: 'En attente', color: 'warning' },
@@ -26,38 +26,52 @@ const fmtDate = (d?: string | null) =>
 const fmtAmount = (n?: number | null) =>
   n ? `${Number(n).toLocaleString('fr-FR')} BIF` : '—';
 
-function ScoreBar({ value }: { value: number }) {
-  const pct = Math.min(100, Math.max(0, value));
+function ScoreBar({ value, max = TOTAL_MAX }: { value: number; max?: number }) {
+  const pct = Math.min(100, Math.max(0, (value / max) * 100));
   const color = pct >= 70 ? 'bg-green-500' : pct >= 40 ? 'bg-amber-500' : 'bg-red-400';
   return (
     <div className="flex items-center gap-2">
       <div className="h-2 flex-1 rounded-full bg-gray-200">
         <div className={`h-full rounded-full ${color} transition-all`} style={{ width: `${pct}%` }} />
       </div>
-      <span className="w-8 text-right text-sm font-semibold text-gray-700">{value}</span>
+      <span className="w-16 text-right text-sm font-semibold text-gray-700">{value}/{max}</span>
     </div>
   );
 }
 
-function ScoreInput({ label, description, value, onChange }: {
-  label: string; description: string; value: number; onChange: (v: number) => void;
+function CriterionInput({ num, label, coefficient, value, onChange }: {
+  num: number; label: string; coefficient: number; value: number; onChange: (v: number) => void;
 }) {
+  const weighted = value * coefficient;
+  const maxWeighted = 5 * coefficient;
   return (
-    <div>
-      <div className="mb-1 flex items-baseline justify-between">
-        <div>
-          <span className="text-sm font-medium text-gray-800">{label}</span>
-          <span className="ml-2 text-xs text-gray-400">{description}</span>
+    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3">
+      <div className="mb-2 flex items-start justify-between gap-2">
+        <div className="flex items-start gap-2">
+          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-600">{num}</span>
+          <span className="text-sm text-gray-700 leading-snug">{label}</span>
         </div>
-        <span className="text-sm font-bold text-gray-700">{value}/100</span>
+        <span className="shrink-0 text-xs font-medium text-gray-400">×{coefficient}</span>
       </div>
-      <input
-        type="range" min={0} max={100} step={5} value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full accent-primary-500"
-      />
-      <div className="flex justify-between text-xs text-gray-300 mt-0.5">
-        <span>0</span><span>50</span><span>100</span>
+      <div className="flex items-center gap-1.5">
+        {[0, 1, 2, 3, 4, 5].map((v) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => onChange(v)}
+            className={`flex h-8 w-8 items-center justify-center rounded-md text-sm font-semibold transition-all ${
+              value === v
+                ? 'bg-primary-500 text-white shadow-sm'
+                : 'bg-white border border-gray-200 text-gray-500 hover:border-primary-300 hover:text-primary-500'
+            }`}
+            title={SCORE_LABELS[v]}
+          >
+            {v}
+          </button>
+        ))}
+        <span className="ml-auto text-xs text-gray-400">
+          {SCORE_LABELS[value]} · <span className="font-medium text-gray-600">{weighted}/{maxWeighted} pts</span>
+        </span>
       </div>
     </div>
   );
@@ -67,24 +81,25 @@ function EvaluationFormModal({ assignment, businessPlanId, onClose }: {
   assignment: EvaluationAssignment; businessPlanId: number; onClose: () => void;
 }) {
   const { mutate: submit, isPending } = useSubmitEvaluation(businessPlanId);
-  const defaultScores = Object.fromEntries(CRITERIA.map((c) => [c.key, 50])) as Record<string, number>;
+  const defaultScores = Object.fromEntries(CRITERIA.map((c) => [c.key, 0])) as Record<string, number>;
   const [scores, setScores] = useState(defaultScores);
-  const [recommendation, setRecommendation] = useState('');
-  const [isFinal, setIsFinal] = useState(false);
+  const [recommendation, setRecommendation] = useState<string>('');
+  const [globalComment, setGlobalComment] = useState('');
+  const [conflictOfInterest, setConflictOfInterest] = useState(false);
 
-  const total = Math.round(CRITERIA.reduce((sum, c) => sum + scores[c.key as string], 0) / CRITERIA.length);
+  const total = CRITERIA.reduce((sum, c) => sum + (scores[c.key as string] ?? 0) * c.coefficient, 0);
+  const totalPct = Math.round((total / TOTAL_MAX) * 100);
+  const scoreColor = totalPct >= 70 ? 'text-green-600' : totalPct >= 40 ? 'text-amber-500' : 'text-red-500';
+
+  const sections = Array.from(new Set(CRITERIA.map((c) => c.section)));
 
   const handleSubmit = () => {
     const payload: EvaluationInput = {
-      assignmentId: assignment.id,
-      economicViabilityScore:      scores.economicViabilityScore,
-      innovationScore:             scores.innovationScore,
-      qualityScore:                scores.qualityScore,
-      implementationCapacityScore: scores.implementationCapacityScore,
-      socialImpactScore:           scores.socialImpactScore,
-      environmentalImpactScore:    scores.environmentalImpactScore,
-      recommendation,
-      isFinalEvaluation: isFinal,
+      businessPlanId,
+      ...(Object.fromEntries(CRITERIA.map((c) => [c.key, scores[c.key as string] ?? 0])) as any),
+      recommendation: recommendation as any,
+      conflictOfInterestDeclared: conflictOfInterest,
+      globalComment: globalComment || undefined,
     };
     submit(payload, { onSuccess: onClose });
   };
@@ -93,52 +108,89 @@ function EvaluationFormModal({ assignment, businessPlanId, onClose }: {
 
   return (
     <Modal isOpen onClose={onClose} size="xl">
-      <div className="p-6">
-        <Text className="mb-1 text-base font-semibold text-gray-800">Saisir une évaluation</Text>
+      <div className="max-h-[90vh] overflow-y-auto p-6">
+        <Text className="mb-1 text-base font-semibold text-gray-800">Grille d'évaluation — COPA Nyunganira</Text>
         <Text className="mb-5 text-sm text-gray-500">
-          Affectation #{assignment.id} — Évaluateur : <span className="font-medium text-gray-700">{evalName}</span>
+          Affectation #{assignment.id} · Évaluateur : <span className="font-medium text-gray-700">{evalName}</span>
         </Text>
 
         <div className="mb-6 space-y-5">
-          {CRITERIA.map((c) => (
-            <ScoreInput
-              key={c.key as string}
-              label={c.label}
-              description={c.description}
-              value={scores[c.key as string]}
-              onChange={(v) => setScores((prev) => ({ ...prev, [c.key as string]: v }))}
-            />
-          ))}
+          {sections.map((section) => {
+            const criteria = CRITERIA.filter((c) => c.section === section);
+            const sectionTotal = criteria.reduce((s, c) => s + (scores[c.key as string] ?? 0) * c.coefficient, 0);
+            const sectionMax = criteria.reduce((s, c) => s + 5 * c.coefficient, 0);
+            return (
+              <div key={section}>
+                <div className="mb-2 flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-primary-600">{section}</h3>
+                  <span className="text-xs font-medium text-gray-500">{sectionTotal}/{sectionMax} pts</span>
+                </div>
+                <div className="space-y-2">
+                  {criteria.map((c) => (
+                    <CriterionInput
+                      key={c.key as string}
+                      num={c.num}
+                      label={c.label}
+                      coefficient={c.coefficient}
+                      value={scores[c.key as string] ?? 0}
+                      onChange={(v) => setScores((prev) => ({ ...prev, [c.key as string]: v }))}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         <div className="mb-4 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 flex items-center justify-between">
-          <Text className="text-sm font-medium text-gray-600">Score total moyen</Text>
-          <span className={`text-2xl font-bold ${total >= 70 ? 'text-green-600' : total >= 40 ? 'text-amber-500' : 'text-red-500'}`}>
-            {total}/100
-          </span>
+          <div>
+            <Text className="text-sm font-medium text-gray-600">Score total pondéré</Text>
+            <Text className="text-xs text-gray-400">Échelle : 5=Excellent · 4=Bien · 3=Assez bien · 2=Faible · 1=Très faible · 0=Nul</Text>
+          </div>
+          <span className={`text-2xl font-bold ${scoreColor}`}>{total}/{TOTAL_MAX}</span>
+        </div>
+
+        <div className="mb-4">
+          <label className="mb-1 block text-sm font-medium text-gray-700">Recommandation *</label>
+          <div className="flex flex-wrap gap-2">
+            {RECOMMENDATION_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setRecommendation(opt.value)}
+                className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-all ${
+                  recommendation === opt.value
+                    ? 'border-primary-500 bg-primary-50 text-primary-700'
+                    : 'border-gray-200 bg-white text-gray-600 hover:border-primary-300'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <Textarea
-          label="Recommandation *"
-          placeholder="Rédigez votre recommandation détaillée sur ce plan d'affaires..."
-          value={recommendation}
-          onChange={(e) => setRecommendation(e.target.value)}
-          rows={4}
+          label="Commentaire général (optionnel)"
+          placeholder="Observations complémentaires sur ce plan d'affaires..."
+          value={globalComment}
+          onChange={(e) => setGlobalComment(e.target.value)}
+          rows={3}
           className="mb-4"
         />
 
         <label className="mb-6 flex cursor-pointer items-center gap-2">
           <input
-            type="checkbox" checked={isFinal}
-            onChange={(e) => setIsFinal(e.target.checked)}
+            type="checkbox" checked={conflictOfInterest}
+            onChange={(e) => setConflictOfInterest(e.target.checked)}
             className="rounded border-gray-300 accent-primary-500"
           />
-          <Text className="text-sm text-gray-700">Marquer comme évaluation finale</Text>
+          <Text className="text-sm text-gray-700">Je déclare ne pas avoir de conflit d'intérêt avec ce dossier</Text>
         </label>
 
         <div className="flex justify-end gap-3">
           <Button variant="outline" onClick={onClose} disabled={isPending}>Annuler</Button>
-          <Button onClick={handleSubmit} isLoading={isPending} disabled={!recommendation.trim()}>
+          <Button onClick={handleSubmit} isLoading={isPending} disabled={!recommendation}>
             Soumettre l'évaluation
           </Button>
         </div>
@@ -382,17 +434,24 @@ export default function EvaluateBusinessPlan({ beneficiaryId, beneficiaryName }:
                           <PiStar className="size-3" /> Finale
                         </Badge>
                       )}
-                      <span className={`text-xl font-bold ${scoreColor}`}>{ev.totalScore}/100</span>
+                      <span className={`text-xl font-bold ${scoreColor}`}>{ev.totalScore}/{TOTAL_MAX}</span>
                     </div>
                   </div>
 
-                  <div className="mb-3 grid grid-cols-2 gap-x-6 gap-y-2">
-                    {CRITERIA.map((c) => (
-                      <div key={c.key as string}>
-                        <p className="mb-0.5 text-xs text-gray-500">{c.label}</p>
-                        <ScoreBar value={(ev as any)[c.key as string] ?? 0} />
-                      </div>
-                    ))}
+                  <div className="mb-3 space-y-1">
+                    {CRITERIA.map((c) => {
+                      const score = (ev as any)[c.key as string] ?? 0;
+                      const weighted = score * c.coefficient;
+                      const maxWeighted = 5 * c.coefficient;
+                      return (
+                        <div key={c.key as string} className="flex items-center gap-2">
+                          <span className="w-4 text-right text-xs font-semibold text-gray-400">{c.num}.</span>
+                          <span className="min-w-0 flex-1 truncate text-xs text-gray-600">{c.label}</span>
+                          <span className="shrink-0 text-xs font-medium text-gray-700">{score}/5</span>
+                          <span className="w-14 shrink-0 text-right text-xs text-gray-400">{weighted}/{maxWeighted} pts</span>
+                        </div>
+                      );
+                    })}
                   </div>
 
                   <div className="rounded-lg bg-gray-50 px-3 py-2">

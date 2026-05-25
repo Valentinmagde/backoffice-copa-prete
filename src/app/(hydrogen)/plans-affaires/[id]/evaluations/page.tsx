@@ -1,21 +1,11 @@
 'use client';
 
-import { use, useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader, Button, Modal, Select, Text, Textarea } from 'rizzui';
-import { PiClipboardText } from 'react-icons/pi';
-import FormGroup from '@/app/shared/form-group';
-import { routes } from '@/config/routes';
-import { useEvaluationsByBusinessPlan, useSubmitEvaluation } from '@/lib/api/hooks/use-evaluateurs';
-import type { Evaluation, EvaluationInput, RecommendationCode } from '@/lib/api/types/evaluateur.types';
-import { SCORE_CRITERIA as CRITERIA } from '@/lib/api/types/evaluateur.types';
-
-const RECOMMENDATION_OPTIONS: { value: RecommendationCode; label: string }[] = [
-  { value: 'STRONGLY_RECOMMENDED',      label: 'Fortement recommandé' },
-  { value: 'RECOMMENDED',               label: 'Recommandé' },
-  { value: 'RECOMMENDED_WITH_RESERVES', label: 'Recommandé avec réserves' },
-  { value: 'NOT_RECOMMENDED',           label: 'Non recommandé' },
-];
+import { use, Suspense, Fragment } from 'react';
+import { Loader, Badge, Text } from 'rizzui';
+import { PiStar } from 'react-icons/pi';
+import { useEvaluationsByBusinessPlan } from '@/lib/api/hooks/use-evaluateurs';
+import type { Evaluation } from '@/lib/api/types/evaluateur.types';
+import { SCORE_CRITERIA as CRITERIA, TOTAL_MAX } from '@/lib/api/types/evaluateur.types';
 
 const RECOMMENDATION_LABELS: Record<string, string> = {
   STRONGLY_RECOMMENDED:      'Fortement recommandé',
@@ -24,234 +14,279 @@ const RECOMMENDATION_LABELS: Record<string, string> = {
   NOT_RECOMMENDED:           'Non recommandé',
 };
 
-const fmtDate = (d?: string | null) =>
-  d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+const fmtDate = (d?: string | Date | null) =>
+  d ? new Date(d as string).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
-function ScoreBar({ value, max }: { value: number; max: number }) {
-  const pct = Math.min(100, Math.max(0, (value / max) * 100));
-  const color = pct >= 70 ? 'bg-green-500' : pct >= 40 ? 'bg-amber-500' : 'bg-red-400';
+const SUM_COEFFS = CRITERIA.reduce((s, c) => s + c.coefficient, 0);
+
+function scoreClass(s: number): string {
+  if (s >= 4) return 'bg-green-100 text-green-700';
+  if (s >= 3) return 'bg-blue-100 text-blue-700';
+  if (s >= 2) return 'bg-amber-100 text-amber-700';
+  if (s >= 1) return 'bg-red-100 text-red-600';
+  return 'bg-gray-100 text-gray-400';
+}
+
+function totalClass(pct: number): string {
+  if (pct >= 70) return 'text-green-600';
+  if (pct >= 40) return 'text-amber-600';
+  return 'text-red-600';
+}
+
+const COLS = 8; // label + 3 évaluateurs + moyenne + coeff + pondérée + commentaire
+
+const TH = 'bg-gray-100 px-3 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500';
+const TH_L = `${TH} text-left`;
+const TH_C = `${TH} text-center`;
+
+function EvaluationsGrid({ evaluations }: { evaluations: Evaluation[] }) {
+  const MAX = 3;
+  const slots: (Evaluation | null)[] = [
+    ...evaluations.slice(0, MAX),
+    ...Array(MAX - Math.min(evaluations.length, MAX)).fill(null),
+  ];
+
+  const sections = Array.from(new Set(CRITERIA.map((c) => c.section)));
+
+  const avgTotal = evaluations.length > 0
+    ? evaluations.reduce((s, e) => s + e.totalScore, 0) / evaluations.length
+    : null;
+
   return (
-    <div className="flex items-center gap-2">
-      <div className="h-1.5 flex-1 rounded-full bg-gray-100">
-        <div className={`h-full rounded-full ${color} transition-all`} style={{ width: `${pct}%` }} />
-      </div>
-      <span className="w-12 text-right text-sm font-semibold text-gray-700">{value}/{max}</span>
+    <div className="custom-scrollbar overflow-x-auto rounded-md border border-muted">
+      <table className="min-w-full border-collapse text-sm">
+        <thead>
+          <tr>
+            <th rowSpan={2} className={`${TH_L} min-w-[260px]`}>
+              Critère
+            </th>
+            <th colSpan={MAX + 1} className={TH_C}>
+              Notation
+            </th>
+            <th rowSpan={2} className={`${TH_C} whitespace-nowrap`}>
+              Coefficient
+            </th>
+            <th rowSpan={2} className={`${TH_C} whitespace-nowrap`}>
+              Note pondérée
+            </th>
+            <th rowSpan={2} className={`${TH_C} border-r-0`}>
+              Commentaire
+            </th>
+          </tr>
+          <tr>
+            {slots.map((ev, i) => (
+              <th key={i} className={`${TH_C} whitespace-nowrap`}>
+                {ev?.evaluator?.user
+                  ? `${ev.evaluator.user.firstName} ${ev.evaluator.user.lastName}`
+                  : `Évaluateur ${i + 1}`}
+              </th>
+            ))}
+            <th className={TH_C}>
+              Moyenne
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {sections.map((section) => {
+            const criteria = CRITERIA.filter((c) => c.section === section);
+            return (
+              <Fragment key={section}>
+                <tr className="border-b border-muted bg-gray-50">
+                  <td colSpan={COLS} className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-primary-600">
+                    {section}
+                  </td>
+                </tr>
+
+                {criteria.map((c) => {
+                  const scores = slots.map((ev) =>
+                    ev !== null ? ((ev as any)[c.key as string] ?? null) as number | null : null,
+                  );
+                  const valid = scores.filter((s): s is number => s !== null);
+                  const avg = valid.length > 0
+                    ? valid.reduce((a, b) => a + b, 0) / valid.length
+                    : null;
+                  const weighted = avg !== null ? avg * c.coefficient : null;
+                  const maxW     = 5 * c.coefficient;
+                  const comments = evaluations
+                    .map((ev) => ev.criteriaComments?.[c.key as string])
+                    .filter(Boolean)
+                    .join(' · ');
+
+                  return (
+                    <tr key={c.key as string} className="border-b border-muted hover:bg-gray-50">
+                      <td className="px-3 py-4 text-xs text-gray-700">
+                        <span className="mr-1.5 font-bold text-gray-400">{c.num}.</span>
+                        {c.label}
+                      </td>
+
+                      {scores.map((score, i) => (
+                        <td key={i} className="px-3 py-4 text-center">
+                          {score !== null ? (
+                            <span className={`inline-block rounded px-2 py-0.5 text-xs font-bold ${scoreClass(score)}`}>
+                              {score}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-gray-300">—</span>
+                          )}
+                        </td>
+                      ))}
+
+                      <td className="px-3 py-4 text-center">
+                        {avg !== null ? (
+                          <span className={`inline-block rounded px-2 py-0.5 text-xs font-semibold ${scoreClass(Math.round(avg))}`}>
+                            {avg.toFixed(1)}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-300">—</span>
+                        )}
+                      </td>
+
+                      <td className="px-3 py-4 text-center text-xs font-bold text-gray-500">
+                        ×{c.coefficient}
+                      </td>
+
+                      <td className="px-3 py-4 text-center text-xs text-gray-600">
+                        {weighted !== null ? (
+                          <>{weighted.toFixed(1)}<span className="text-gray-400">/{maxW}</span></>
+                        ) : '—'}
+                      </td>
+
+                      <td className="px-3 py-4 text-xs text-gray-500">{comments}</td>
+                    </tr>
+                  );
+                })}
+              </Fragment>
+            );
+          })}
+
+          {/* Ligne total */}
+          <tr className="border-t-2 border-muted bg-gray-100">
+            <td className="px-3 py-4 text-xs font-bold uppercase tracking-wider text-gray-700">
+              Total de l'évaluation sur {TOTAL_MAX}
+            </td>
+            {slots.map((ev, i) => (
+              <td key={i} className="px-3 py-4 text-center">
+                {ev ? (
+                  <span className={`text-sm font-bold ${totalClass((ev.totalScore / TOTAL_MAX) * 100)}`}>
+                    {ev.totalScore}
+                  </span>
+                ) : (
+                  <span className="text-xs text-gray-300">—</span>
+                )}
+              </td>
+            ))}
+            <td className="px-3 py-4 text-center">
+              {avgTotal !== null ? (
+                <span className={`text-sm font-bold ${totalClass((avgTotal / TOTAL_MAX) * 100)}`}>
+                  {avgTotal.toFixed(1)}
+                </span>
+              ) : (
+                <span className="text-xs text-gray-300">—</span>
+              )}
+            </td>
+            <td className="px-3 py-4 text-center text-xs font-bold text-gray-500">
+              {SUM_COEFFS}
+            </td>
+            <td className="px-3 py-4 text-center">
+              {avgTotal !== null ? (
+                <span className={`text-sm font-bold ${totalClass((avgTotal / TOTAL_MAX) * 100)}`}>
+                  {avgTotal.toFixed(1)}<span className="text-xs font-normal text-gray-400">/{TOTAL_MAX}</span>
+                </span>
+              ) : (
+                <span className="text-xs text-gray-300">—</span>
+              )}
+            </td>
+            <td />
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 }
 
-function EvaluationFormModal({ businessPlanId, onClose }: { businessPlanId: number; onClose: () => void }) {
-  const { mutate: submit, isPending } = useSubmitEvaluation(businessPlanId);
-  const defaultScores = Object.fromEntries(CRITERIA.map((c) => [c.key, 0])) as Record<string, number>;
-  const [scores, setScores] = useState(defaultScores);
-  const [recommendation, setRecommendation] = useState<RecommendationCode | null>(null);
-  const [globalComment, setGlobalComment] = useState('');
-  const [strengths, setStrengths] = useState('');
-  const [weaknesses, setWeaknesses] = useState('');
-  const [conflictOfInterest, setConflictOfInterest] = useState(false);
-
-  const total = CRITERIA.reduce((sum, c) => sum + scores[c.key as string], 0);
-  const maxTotal = CRITERIA.reduce((sum, c) => sum + c.max, 0);
-  const totalPct = Math.round((total / maxTotal) * 100);
-
-  const handleSubmit = () => {
-    if (!recommendation) return;
-    const payload: EvaluationInput = {
-      businessPlanId,
-      economicViabilityScore:      scores.economicViabilityScore,
-      innovationScore:             scores.innovationScore,
-      qualityScore:                scores.qualityScore,
-      implementationCapacityScore: scores.implementationCapacityScore,
-      socialImpactScore:           scores.socialImpactScore,
-      environmentalImpactScore:    scores.environmentalImpactScore,
-      recommendation,
-      conflictOfInterestDeclared: conflictOfInterest,
-      globalComment: globalComment || undefined,
-      strengths:     strengths || undefined,
-      weaknesses:    weaknesses || undefined,
-    };
-    submit(payload, { onSuccess: onClose });
-  };
-
-  return (
-    <Modal isOpen onClose={onClose} size="lg">
-      <div className="p-6">
-        <Text className="mb-1 text-base font-semibold text-gray-800">Évaluer ce plan d'affaires</Text>
-        <Text className="mb-5 text-sm text-gray-500">Notez chaque critère selon le barème indiqué.</Text>
-
-        <div className="mb-5 grid grid-cols-2 gap-x-6 gap-y-4">
-          {CRITERIA.map((c) => (
-            <div key={c.key as string} className="flex items-center justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-700 leading-tight">{c.label}</p>
-                <p className="text-xs text-gray-400">{c.description}</p>
-              </div>
-              <div className="flex shrink-0 items-center gap-1">
-                <input
-                  type="number"
-                  min={0}
-                  max={c.max}
-                  value={scores[c.key as string]}
-                  onChange={(e) => {
-                    const v = Math.min(c.max, Math.max(0, Number(e.target.value)));
-                    setScores((prev) => ({ ...prev, [c.key as string]: v }));
-                  }}
-                  className="w-14 rounded border border-gray-300 px-2 py-1.5 text-center text-sm font-semibold focus:border-primary-400 focus:outline-none"
-                />
-                <span className="text-xs text-gray-400">/{c.max}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mb-5 flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5">
-          <Text className="text-sm font-medium text-gray-600">Score total</Text>
-          <span className={`text-xl font-bold ${totalPct >= 70 ? 'text-green-600' : totalPct >= 40 ? 'text-amber-500' : 'text-red-500'}`}>
-            {total}/{maxTotal}
-          </span>
-        </div>
-
-        <div className="space-y-3 mb-5">
-          <Select
-            label="Recommandation *"
-            placeholder="Choisir une recommandation..."
-            options={RECOMMENDATION_OPTIONS}
-            value={RECOMMENDATION_OPTIONS.find((o) => o.value === recommendation) ?? null}
-            onChange={(opt: any) => setRecommendation(opt?.value ?? null)}
-            displayValue={(opt: any) => opt?.label ?? ''}
-            getOptionValue={(opt: any) => opt?.value ?? ''}
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <Textarea label="Points forts" placeholder="Atouts du projet..." value={strengths} onChange={(e) => setStrengths(e.target.value)} rows={2} />
-            <Textarea label="Points faibles" placeholder="Faiblesses identifiées..." value={weaknesses} onChange={(e) => setWeaknesses(e.target.value)} rows={2} />
-          </div>
-          <Textarea label="Commentaire général" placeholder="Observations générales..." value={globalComment} onChange={(e) => setGlobalComment(e.target.value)} rows={2} />
-        </div>
-
-        <label className="mb-5 flex cursor-pointer items-center gap-2">
-          <input type="checkbox" checked={conflictOfInterest} onChange={(e) => setConflictOfInterest(e.target.checked)} className="rounded border-gray-300" />
-          <Text className="text-sm text-gray-700">Je déclare n'avoir aucun conflit d'intérêt avec ce plan</Text>
-        </label>
-
-        <div className="flex justify-end gap-3">
-          <Button variant="outline" onClick={onClose} disabled={isPending}>Annuler</Button>
-          <Button onClick={handleSubmit} isLoading={isPending} disabled={!recommendation}>
-            Soumettre l'évaluation
-          </Button>
-        </div>
-      </div>
-    </Modal>
-  );
-}
-
-function EvaluationsContent({ businessPlanId, id }: { businessPlanId: number; id: string }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+function EvaluationsContent({ businessPlanId }: { businessPlanId: number }) {
   const { data: evaluations = [], isLoading } = useEvaluationsByBusinessPlan(businessPlanId);
-  const [evalModal, setEvalModal] = useState(false);
-
-  useEffect(() => {
-    if (searchParams.get('open') === '1') {
-      setEvalModal(true);
-      router.replace(routes.businessPlans.evaluations(id));
-    }
-  }, [searchParams]);
-
-  const maxTotal = CRITERIA.reduce((sum, c) => sum + c.max, 0);
 
   if (isLoading) {
-    return <div className="flex h-64 items-center justify-center"><Loader variant="spinner" size="lg" /></div>;
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <Loader variant="spinner" size="lg" />
+      </div>
+    );
   }
 
+  if (evaluations.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-gray-200 py-16 text-center">
+        <Text className="text-sm text-gray-400">Aucune évaluation soumise pour le moment</Text>
+      </div>
+    );
+  }
+
+  const hasFooter = evaluations.some((ev) => ev.recommendation || ev.globalComment);
+
   return (
-    <>
-      <FormGroup
-        title={`Évaluations (${evaluations.length})`}
-        description="Évaluations soumises par les évaluateurs pour ce plan d'affaires"
-        className="@3xl:grid-cols-12"
-      >
-        <div className="space-y-3 @3xl:col-span-8">
-          {evaluations.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-gray-200 py-10 text-center text-sm text-gray-400">
-              Aucune évaluation soumise pour le moment
-            </div>
-          ) : (
-            evaluations.map((ev: Evaluation) => {
-              const evalName = ev.evaluator?.user
+    <div className="space-y-6">
+      {/* Pastilles évaluateurs */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-sm font-semibold text-gray-700">
+          Évaluations ({evaluations.length}/3)
+        </span>
+        {evaluations.map((ev, i) => (
+          <div key={ev.id}
+            className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-600"
+          >
+            <span className="font-medium">
+              {ev.evaluator?.user
                 ? `${ev.evaluator.user.firstName} ${ev.evaluator.user.lastName}`
-                : `Évaluateur #${ev.evaluatorId}`;
-              const totalPct = Math.round((ev.totalScore / maxTotal) * 100);
-              const scoreColor = totalPct >= 70 ? 'text-green-600' : totalPct >= 40 ? 'text-amber-500' : 'text-red-500';
-              return (
-                <div key={ev.id} className="rounded-lg border border-muted bg-white p-6">
-                  <div className="mb-4 flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <div className="rounded-full bg-primary-50 p-1.5">
-                        <PiClipboardText className="size-4 text-primary-500" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-800">{evalName}</p>
-                        <p className="text-xs text-gray-400">{fmtDate(ev.evaluationDate)}</p>
-                      </div>
-                    </div>
-                    <span className={`text-2xl font-bold ${scoreColor}`}>{ev.totalScore}/{maxTotal}</span>
+                : `Évaluateur ${i + 1}`}
+            </span>
+            <span className="text-gray-300">·</span>
+            <span>{fmtDate(ev.evaluationDate)}</span>
+            {ev.isFinalEvaluation && (
+              <Badge color="success" variant="flat" className="gap-1 text-xs">
+                <PiStar className="size-3" /> Finale
+              </Badge>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Tableau de synthèse */}
+      <EvaluationsGrid evaluations={evaluations} />
+
+      {/* Recommandations & commentaires globaux */}
+      {hasFooter && (
+        <div className="grid gap-4 sm:grid-cols-3">
+          {evaluations.map((ev, i) =>
+            ev.recommendation || ev.globalComment ? (
+              <div key={ev.id} className="space-y-3 rounded-xl border border-gray-200 bg-white p-4">
+                <p className="text-xs font-semibold text-gray-500">
+                  {ev.evaluator?.user
+                    ? `${ev.evaluator.user.firstName} ${ev.evaluator.user.lastName}`
+                    : `Évaluateur ${i + 1}`}
+                </p>
+                {ev.recommendation && (
+                  <div className="rounded-lg bg-blue-50 px-3 py-2">
+                    <p className="mb-0.5 text-xs text-gray-400">Recommandation</p>
+                    <p className="text-sm font-medium text-blue-700">
+                      {RECOMMENDATION_LABELS[ev.recommendation] ?? ev.recommendation}
+                    </p>
                   </div>
-
-                  <div className="mb-4 grid grid-cols-2 gap-x-6 gap-y-2">
-                    {CRITERIA.map((c) => (
-                      <div key={c.key as string}>
-                        <p className="mb-0.5 text-xs text-gray-400">{c.label}</p>
-                        <ScoreBar value={(ev as any)[c.key as string] ?? 0} max={c.max} />
-                      </div>
-                    ))}
+                )}
+                {ev.globalComment && (
+                  <div className="rounded-lg bg-gray-50 px-3 py-2">
+                    <p className="mb-0.5 text-xs text-gray-400">Commentaire général</p>
+                    <p className="text-sm text-gray-700">{ev.globalComment}</p>
                   </div>
-
-                  {ev.recommendation && (
-                    <div className="mb-3 rounded-lg bg-blue-50 px-3 py-2.5">
-                      <p className="mb-0.5 text-xs font-semibold uppercase tracking-wider text-gray-400">Recommandation</p>
-                      <p className="text-sm font-medium text-blue-700">
-                        {RECOMMENDATION_LABELS[ev.recommendation] ?? ev.recommendation}
-                      </p>
-                    </div>
-                  )}
-
-                  {(ev.strengths || ev.weaknesses) && (
-                    <div className="mb-3 grid grid-cols-2 gap-3">
-                      {ev.strengths && (
-                        <div className="rounded-lg bg-green-50 px-3 py-2.5">
-                          <p className="mb-0.5 text-xs font-semibold uppercase tracking-wider text-gray-400">Points forts</p>
-                          <p className="text-sm text-gray-700">{ev.strengths}</p>
-                        </div>
-                      )}
-                      {ev.weaknesses && (
-                        <div className="rounded-lg bg-red-50 px-3 py-2.5">
-                          <p className="mb-0.5 text-xs font-semibold uppercase tracking-wider text-gray-400">Points faibles</p>
-                          <p className="text-sm text-gray-700">{ev.weaknesses}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {ev.globalComment && (
-                    <div className="rounded-lg bg-gray-50 px-3 py-2.5">
-                      <p className="mb-0.5 text-xs font-semibold uppercase tracking-wider text-gray-400">Commentaire</p>
-                      <p className="text-sm text-gray-700">{ev.globalComment}</p>
-                    </div>
-                  )}
-                </div>
-              );
-            })
+                )}
+              </div>
+            ) : null,
           )}
         </div>
-      </FormGroup>
-
-      {evalModal && (
-        <EvaluationFormModal
-          businessPlanId={businessPlanId}
-          onClose={() => setEvalModal(false)}
-        />
       )}
-    </>
+    </div>
   );
 }
 
@@ -259,8 +294,12 @@ export default function BusinessPlanEvaluationsPage({ params }: { params: Promis
   const { id } = use(params);
   return (
     <div className="@container space-y-8">
-      <Suspense fallback={<div className="flex h-64 items-center justify-center"><Loader variant="spinner" size="lg" /></div>}>
-        <EvaluationsContent businessPlanId={Number(id)} id={id} />
+      <Suspense fallback={
+        <div className="flex h-64 items-center justify-center">
+          <Loader variant="spinner" size="lg" />
+        </div>
+      }>
+        <EvaluationsContent businessPlanId={Number(id)} />
       </Suspense>
     </div>
   );

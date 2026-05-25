@@ -37,12 +37,12 @@ export default function SearchList({ onClose }: { onClose?: () => void }) {
 
   // ✅ Filtrer les pages par rôles et permissions
   const accessiblePages = useMemo(() => {
-    return pageLinks.filter(page => {
-      // Ne pas filtrer les sections (pas de href)
+    const filtered = pageLinks.filter(page => {
       if (!page.href) return true;
-      // Vérifier si l'utilisateur a accès à cette page
       return canAccessPage(page);
     });
+    // Remove section labels whose next sibling is not a navigable item
+    return filtered.filter((item, i, arr) => !!item.href || !!arr[i + 1]?.href);
   }, [canAccessPage]);
 
   // ✅ Filtrer par texte de recherche

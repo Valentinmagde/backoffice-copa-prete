@@ -1,14 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import PageHeader from '@/app/shared/page-header';
 import { routes } from '@/config/routes';
-import { Tab } from 'rizzui';
-import { PiClockBold, PiEnvelopeBold, PiGearBold, PiLightningBold } from 'react-icons/pi';
+import { Tab, Loader } from 'rizzui';
+import { PiClockBold, PiEnvelopeBold, PiLightningBold } from 'react-icons/pi';
 import NotificationsHistoriqueTable from '@/app/shared/mpme/notifications/historique/historique-table';
 import MailComposer from '@/app/shared/mpme/notifications/composer/mail-composer';
 import { Notification } from '@/app/shared/mpme/notifications/historique/columns';
 import AutoMailActions from '@/app/shared/mpme/notifications/automatiques/auto-mail-actions';
+import { useAuthRoles } from '@/lib/api/hooks/use-auth-roles';
 
 const pageHeader = {
     title: 'Notifications Email',
@@ -20,6 +22,22 @@ const pageHeader = {
 };
 
 export default function NotificationsPage() {
+    const router = useRouter();
+    const { hasAnyRole, isLoading } = useAuthRoles();
+
+    useEffect(() => {
+        if (!isLoading && !hasAnyRole('SUPER_ADMIN', 'ADMIN')) {
+            router.replace(routes.accessDenied);
+        }
+    }, [isLoading, hasAnyRole, router]);
+
+    if (isLoading || !hasAnyRole('SUPER_ADMIN', 'ADMIN')) {
+        return (
+            <div className="flex h-64 items-center justify-center">
+                <Loader variant="spinner" size="lg" />
+            </div>
+        );
+    }
     const handleResend = (notification: Notification) => {
         console.log('Renvoyer', notification);
         // Appel API pour renvoyer

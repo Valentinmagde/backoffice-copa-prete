@@ -3,6 +3,7 @@ import { apiClient } from '../client/base-client';
 export interface BusinessPlan {
   id: number;
   referenceNumber: string;
+  isAnonymized?: boolean;
   projectTitle: string;
   projectDescription: string | null;
   requestedFundingAmount: number | null;
@@ -15,6 +16,7 @@ export interface BusinessPlan {
   beneficiaryId: number;
   beneficiary?: {
     id: number;
+    applicationCode?: string | null;
     projectSectors?: string[] | null;
     requestedSubsidyAmount?: number | null;
     totalProjectCost?: number | null;
@@ -78,6 +80,10 @@ class BusinessPlanApi {
 
   async getDocument(id: number): Promise<BusinessPlanDocument | null> {
     return apiClient.get<BusinessPlanDocument | null>(`${this.base}/${id}/document`);
+  }
+
+  async anonymize(id: number): Promise<BusinessPlan> {
+    return apiClient.patch<BusinessPlan>(`${this.base}/${id}/anonymize`, {});
   }
 }
 

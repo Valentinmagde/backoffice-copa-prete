@@ -49,6 +49,10 @@ export const routes = {
     documents: (id: number | string) => `/plans-affaires/${id}/documents`,
     evaluations: (id: number | string) => `/plans-affaires/${id}/evaluations`,
   },
+  evaluation: {
+    search: '/evaluation',
+    evaluate: (id: number | string) => `/evaluation/${id}`,
+  },
   cohorts: {
     list: '/cohorts',
     details: (id: number | string) => `/cohorts/${id}`,

@@ -4,16 +4,18 @@ import Link from 'next/link';
 import { Button, Text } from 'rizzui';
 import cn from '@core/utils/class-names';
 import { useScrollableSlider } from '@core/hooks/use-scrollable-slider';
-import { PiCaretLeftBold, PiCaretRightBold, PiArrowLeft, PiPencil } from 'react-icons/pi';
+import { PiCaretLeftBold, PiCaretRightBold, PiArrowLeft } from 'react-icons/pi';
 import { usePathname, useRouter } from 'next/navigation';
 import PageHeader from '@/app/shared/page-header';
 import { routes } from '@/config/routes';
 import { useBusinessPlanById } from '@/lib/api/hooks/use-business-plan';
+import { useAuthRoles } from '@/lib/api/hooks/use-auth-roles';
 
 export default function BusinessPlanNav({ id }: { id: string }) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: businessPlan } = useBusinessPlanById(Number(id));
+  const { isSuperAdmin, isAdmin, isCopaManager } = useAuthRoles();
 
   const { sliderEl, sliderPrevBtn, sliderNextBtn, scrollToTheRight, scrollToTheLeft } =
     useScrollableSlider();
@@ -29,34 +31,28 @@ export default function BusinessPlanNav({ id }: { id: string }) {
     ],
   };
 
+  const canSeeEvaluations = isSuperAdmin || isAdmin || isCopaManager;
+
   const menuItems = [
     { label: "Plan d'affaires", value: routes.businessPlans.details(id) },
     { label: 'Documents',       value: routes.businessPlans.documents(id) },
-    { label: 'Évaluations',     value: routes.businessPlans.evaluations(id) },
+    ...(canSeeEvaluations
+      ? [{ label: 'Évaluations', value: routes.businessPlans.evaluations(id) }]
+      : []),
   ];
 
   return (
     <>
       <PageHeader title={pageHeader.title} breadcrumb={pageHeader.breadcrumb}>
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <Button
-            size="sm"
-            className="gap-2"
-            onClick={() => router.push(`${routes.businessPlans.evaluations(id)}?open=1`)}
-          >
-            <PiPencil className="size-4" />
-            Évaluer ce plan
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => router.push(routes.businessPlans.list)}
-            className="gap-2 w-full sm:w-auto justify-center"
-          >
-            <PiArrowLeft className="size-4" />
-            Retour
-          </Button>
-        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => router.push(routes.businessPlans.list)}
+          className="gap-2"
+        >
+          <PiArrowLeft className="size-4" />
+          Retour
+        </Button>
       </PageHeader>
 
       <div className="sticky top-16 z-20 -mx-4 -mt-4 border-b border-muted bg-white px-4 py-0 font-medium text-gray-500 dark:bg-gray-50 md:-mx-5 md:px-5 lg:-mx-8 lg:px-8 2xl:top-20">
