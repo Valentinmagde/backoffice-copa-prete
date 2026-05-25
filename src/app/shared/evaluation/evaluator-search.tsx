@@ -220,8 +220,10 @@ export default function EvaluatorSearch() {
       return ref.includes(q) || title.includes(q);
     });
   }, [myEvaluations, evalSearch]);
-  const total = search ? (data?.total ?? 0) : 0;
-  const totalPages = Math.max(1, Math.ceil(total / pagination.pageSize));
+  const total = search ? (data?.meta?.total ?? 0) : 0;
+  const totalPages = search
+    ? (data?.meta?.totalPages ?? Math.max(1, Math.ceil(total / pagination.pageSize)))
+    : 1;
 
   const planColumns = useMemo(
     () => buildPlanColumns((id) => router.push(routes.evaluation.evaluate(id))),

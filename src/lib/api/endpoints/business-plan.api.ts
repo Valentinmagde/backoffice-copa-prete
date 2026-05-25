@@ -31,9 +31,14 @@ export interface BusinessPlan {
 
 export interface BusinessPlansResponse {
   data: BusinessPlan[];
-  total: number;
-  page: number;
-  limit: number;
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+  };
 }
 
 export interface BusinessPlanSection {

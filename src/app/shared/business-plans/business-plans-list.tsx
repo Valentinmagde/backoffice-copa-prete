@@ -134,8 +134,8 @@ export default function BusinessPlansList() {
   const { mutate: anonymize } = useAnonymizeBusinessPlan();
 
   const plans = data?.data ?? [];
-  const total = data?.total ?? 0;
-  const totalPages = Math.max(1, Math.ceil(total / pagination.pageSize));
+  const total = data?.meta?.total ?? 0;
+  const totalPages = data?.meta?.totalPages ?? Math.max(1, Math.ceil(total / pagination.pageSize));
 
   const columns = useMemo(
     () =>
