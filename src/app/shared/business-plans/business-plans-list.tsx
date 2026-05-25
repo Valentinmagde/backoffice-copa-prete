@@ -125,7 +125,7 @@ export default function BusinessPlansList() {
   const [search, setSearch] = useState('');
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: LIMIT });
 
-  const { data, isLoading } = useBusinessPlans({
+  const { data, isLoading, isFetching } = useBusinessPlans({
     search: search || undefined,
     page: pagination.pageIndex + 1,
     limit: pagination.pageSize,
@@ -195,7 +195,7 @@ export default function BusinessPlansList() {
       <Table
         table={table}
         variant="modern"
-        isLoading={isLoading}
+        isLoading={isLoading || isFetching}
         classNames={{
           container: 'border border-muted rounded-md border-t-0',
           rowClassName: 'last:border-0',

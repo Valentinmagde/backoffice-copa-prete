@@ -197,7 +197,7 @@ export default function EvaluatorSearch() {
   const [evalSearch, setEvalSearch] = useState('');
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: LIMIT });
 
-  const { data, isLoading: loadingPlans } = useBusinessPlans(
+  const { data, isLoading: loadingPlans, isFetching: fetchingPlans } = useBusinessPlans(
     search ? { search, page: pagination.pageIndex + 1, limit: pagination.pageSize } : undefined,
   );
   const { data: myEvaluationsData, isLoading: loadingMine } = useMyEvaluations();
@@ -293,16 +293,16 @@ export default function EvaluatorSearch() {
           </div>
         )}
 
-        {!loadingPlans && search && plans.length === 0 && (
+        {!loadingPlans && !fetchingPlans && search && plans.length === 0 && (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 py-16 text-center">
             <PiClipboardText className="mb-3 size-10 text-gray-300" />
             <Text className="text-sm text-gray-500">Aucune évaluation trouvée pour « {search} »</Text>
           </div>
         )}
 
-        {search && plans.length > 0 && (
+        {search && (plans.length > 0 || fetchingPlans) && (
           <div className="rounded-xl border border-muted">
-            <Table table={planTable} isLoading={loadingPlans} variant="modern" />
+            <Table table={planTable} isLoading={loadingPlans || fetchingPlans} variant="modern" />
             <TablePagination table={planTable} className="p-4" />
           </div>
         )}
