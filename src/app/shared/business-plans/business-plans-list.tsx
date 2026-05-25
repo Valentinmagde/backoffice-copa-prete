@@ -23,7 +23,7 @@ const STATUS_META: Record<string, { label: string; dot: string; text: string }> 
 };
 
 const fmtDate = (d?: string | null) =>
-  d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+  d ? new Date(d).toLocaleString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 
 const LIMIT = 20;
 
@@ -59,7 +59,7 @@ const columns = [
     id: 'submittedAt',
     header: 'Soumis le',
     cell: ({ getValue }) => (
-      <span className="text-xs text-gray-500">{fmtDate(getValue())}</span>
+      <span className="text-sm font-medium text-gray-700">{fmtDate(getValue())}</span>
     ),
   }),
   columnHelper.display({

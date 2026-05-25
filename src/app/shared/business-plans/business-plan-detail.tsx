@@ -1,21 +1,36 @@
 'use client';
 
-import { Loader, Text } from 'rizzui';
+import { Loader, Text, Badge } from 'rizzui';
 import { PiWarning } from 'react-icons/pi';
 import { useBusinessPlanById } from '@/lib/api/hooks/use-business-plan';
 import FormGroup from '@/app/shared/form-group';
 
 const fmtDate = (d?: string | null) =>
-  d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+  d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : null;
 
 const fmtAmount = (n?: number | null) =>
-  n ? `${Number(n).toLocaleString('fr-FR')} BIF` : '—';
+  n != null ? `${Number(n).toLocaleString('fr-FR')} BIF` : null;
+
+const sectorMap = (sector: string) => {
+  switch (sector) {
+    case 'agriculture': return 'Agri-business';
+    case 'milk': return 'Agro-industrie — Lait';
+    case 'poultry': return 'Agro-industrie — Volaille';
+    case 'fish': return 'Agro-industrie — Pisciculture';
+    case 'tropicalFruit': return 'Agro-industrie — Fruits tropicaux';
+    case 'otherAgro': return "Agro-industrie — Autres secteurs à fort potentiel";
+    case 'mining': return 'Industrie minière';
+    case 'tourism': return "Services connexes à l'agri-business (y compris le tourisme et le numérique)";
+    default: return sector;
+  }
+};
 
 function InfoRow({ label, value }: { label: string; value?: any }) {
+  if (value == null || value === '') return null;
   return (
     <div className="flex flex-col gap-1 py-3 border-b border-dashed border-gray-200 last:border-0">
       <Text className="text-sm font-medium tracking-wider text-gray-400">{label}</Text>
-      <Text className="text-sm text-gray-800">{value ?? '—'}</Text>
+      <Text className="text-sm text-gray-800">{value}</Text>
     </div>
   );
 }
@@ -45,17 +60,38 @@ export default function BusinessPlanDetail({ businessPlanId }: { businessPlanId:
         className="@3xl:grid-cols-12"
       >
         <div className="rounded-lg border border-muted bg-white p-6 @3xl:col-span-8">
-          {businessPlan.referenceNumber && (
-            <InfoRow
-              label="Référence"
-              value={<span className="font-mono font-semibold">{businessPlan.referenceNumber}</span>}
-            />
-          )}
-          <InfoRow label="Secteur d'activité" value={businessPlan.businessSector?.name} />
-          <InfoRow label="Financement demandé" value={fmtAmount(businessPlan.requestedFundingAmount)} />
-          <InfoRow label="Apport personnel" value={fmtAmount(businessPlan.personalContributionAmount)} />
-          <InfoRow label="Emplois prévus" value={businessPlan.expectedJobsCount} />
-          <InfoRow label="Emplois femmes prévus" value={businessPlan.expectedWomenJobsCount} />
+          <InfoRow
+            label="Référence"
+            value={businessPlan.referenceNumber ? <span className="font-mono font-semibold">{businessPlan.referenceNumber}</span> : null}
+          />
+          {businessPlan.beneficiary?.projectSectors?.length ? (
+            <div className="flex flex-col gap-1 py-3 border-b border-dashed border-gray-200 last:border-0">
+              <Text className="text-sm font-medium tracking-wider text-gray-400">{"Secteur d'activité"}</Text>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {businessPlan.beneficiary.projectSectors.map((s) => (
+                  <Badge key={s} variant="flat" color="primary">{sectorMap(s)}</Badge>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          <InfoRow label="Financement demandé" value={fmtAmount(businessPlan.beneficiary?.requestedSubsidyAmount)} />
+          <InfoRow
+            label="Apport personnel"
+            value={fmtAmount(
+              businessPlan.beneficiary?.totalProjectCost != null && businessPlan.beneficiary?.requestedSubsidyAmount != null
+                ? Number(businessPlan.beneficiary.totalProjectCost) - Number(businessPlan.beneficiary.requestedSubsidyAmount)
+                : null
+            )}
+          />
+          <InfoRow
+            label="Emplois prévus"
+            value={
+              businessPlan.beneficiary?.plannedEmployeesFemale != null || businessPlan.beneficiary?.plannedEmployeesMale != null
+                ? (businessPlan.beneficiary?.plannedEmployeesFemale ?? 0) + (businessPlan.beneficiary?.plannedEmployeesMale ?? 0)
+                : null
+            }
+          />
+          <InfoRow label="Emplois femmes prévus" value={businessPlan.beneficiary?.plannedEmployeesFemale ?? null} />
           <InfoRow label="Édition COPA" value={businessPlan.copaEdition?.name} />
           <InfoRow label="Soumis le" value={fmtDate(businessPlan.submittedAt)} />
         </div>

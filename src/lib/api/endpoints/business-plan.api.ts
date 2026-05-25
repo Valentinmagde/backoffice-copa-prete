@@ -13,7 +13,15 @@ export interface BusinessPlan {
   copaEdition: { id: number; name: string } | null;
   businessSector: { id: number; name: string } | null;
   beneficiaryId: number;
-  beneficiary?: { id: number; user: { firstName: string; lastName: string; email: string } | null } | null;
+  beneficiary?: {
+    id: number;
+    projectSectors?: string[] | null;
+    requestedSubsidyAmount?: number | null;
+    totalProjectCost?: number | null;
+    plannedEmployeesFemale?: number | null;
+    plannedEmployeesMale?: number | null;
+    user: { firstName: string; lastName: string; email: string } | null;
+  } | null;
   submittedAt: string | null;
   createdAt: string;
   sections?: BusinessPlanSection[];
