@@ -46,13 +46,6 @@ const buildPlanColumns = (onEvaluate: (id: number) => void) => [
       </span>
     ),
   }),
-  planColumnHelper.accessor('projectTitle', {
-    id: 'projectTitle',
-    header: 'Titre',
-    cell: ({ getValue }) => (
-      <span className="max-w-xs truncate text-sm font-medium text-gray-800">{getValue() ?? '—'}</span>
-    ),
-  }),
   planColumnHelper.accessor('submittedAt', {
     id: 'submittedAt',
     header: 'Soumis le',
@@ -124,15 +117,6 @@ const buildEvalColumns = (onView: (businessPlanId: number) => void) => [
     ),
   }),
   evalColumnHelper.accessor('businessPlan', {
-    id: 'projectTitle',
-    header: 'Titre',
-    cell: ({ getValue }) => (
-      <span className="max-w-xs truncate text-sm font-medium text-gray-800">
-        {getValue()?.projectTitle ?? '—'}
-      </span>
-    ),
-  }),
-  evalColumnHelper.accessor('businessPlan', {
     id: 'totalProjectCost',
     header: 'Coût total',
     cell: ({ getValue }) => (
@@ -189,7 +173,7 @@ const buildEvalColumns = (onView: (businessPlanId: number) => void) => [
 
 // ── Composant principal ───────────────────────────────────────────────────────
 
-const LIMIT = 20;
+const LIMIT = 10;
 
 export default function EvaluatorSearch() {
   const router = useRouter();
@@ -216,8 +200,7 @@ export default function EvaluatorSearch() {
     const q = evalSearch.toLowerCase();
     return myEvaluations.filter((ev) => {
       const ref = (ev.businessPlan?.referenceNumber ?? String(ev.businessPlanId)).toLowerCase();
-      const title = (ev.businessPlan?.projectTitle ?? '').toLowerCase();
-      return ref.includes(q) || title.includes(q);
+      return ref.includes(q);
     });
   }, [myEvaluations, evalSearch]);
   const total = search ? (data?.meta?.total ?? 0) : 0;
@@ -266,7 +249,7 @@ export default function EvaluatorSearch() {
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <Input
             type="search"
-            placeholder="Rechercher par référence ou titre..."
+            placeholder="Rechercher par référence..."
             value={search}
             onClear={() => setSearch('')}
             onChange={(e) => setSearch(e.target.value)}
@@ -290,7 +273,7 @@ export default function EvaluatorSearch() {
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 py-16 text-center">
             <PiMagnifyingGlassBold className="mb-3 size-10 text-gray-300" />
             <Text className="text-sm text-gray-500">
-              Saisissez une référence ou un titre pour rechercher une évaluation
+              Saisissez une référence pour rechercher une évaluation
             </Text>
           </div>
         )}
@@ -325,7 +308,7 @@ export default function EvaluatorSearch() {
           {myEvaluations.length > 0 && (
             <Input
               type="search"
-              placeholder="Filtrer par référence ou titre..."
+              placeholder="Filtrer par référence..."
               value={evalSearch}
               onClear={() => setEvalSearch('')}
               onChange={(e) => setEvalSearch(e.target.value)}

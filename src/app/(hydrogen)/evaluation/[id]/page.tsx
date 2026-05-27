@@ -8,7 +8,9 @@ import { useBusinessPlanById } from '@/lib/api/hooks/use-business-plan';
 
 function EvaluatePage({ id }: { id: string }) {
   const { data: businessPlan } = useBusinessPlanById(Number(id));
-  const title = businessPlan?.projectTitle ?? 'Évaluation';
+  const title = businessPlan?.referenceNumber
+    ? `Évaluation – ${businessPlan.referenceNumber}`
+    : 'Évaluation';
 
   const pageHeader = {
     title,

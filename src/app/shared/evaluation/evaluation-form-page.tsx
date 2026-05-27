@@ -6,9 +6,10 @@ import { Button, Badge, Text, Textarea, Loader } from 'rizzui';
 import { PiCheckCircle, PiWarning } from 'react-icons/pi';
 import { useBusinessPlanById } from '@/lib/api/hooks/use-business-plan';
 import {
-  useEvaluationsByBusinessPlan,
+  useEvaluationGaps,
   useMyEvaluations,
   useSubmitEvaluation,
+  useUpdateEvaluation,
 } from '@/lib/api/hooks/use-evaluateurs';
 import {
   SCORE_CRITERIA as CRITERIA,
@@ -31,12 +32,13 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 function CriterionInput({
-  num, label, coefficient, value, hasGap, comment, onChange, onCommentChange,
+  num, label, coefficient, value, hasGap, comment, touched, binaryOnly, onChange, onCommentChange,
 }: {
   num: number; label: string; coefficient: number; value: number;
-  hasGap: boolean; comment: string;
+  hasGap: boolean; comment: string; touched: boolean; binaryOnly?: boolean;
   onChange: (v: number) => void; onCommentChange: (c: string) => void;
 }) {
+  const allowedValues = binaryOnly ? [0, 5] : [0, 1, 2, 3, 4, 5];
   return (
     <div className={`rounded-lg border px-5 py-4 transition-colors ${
       hasGap ? 'border-amber-300 bg-amber-50' : 'border-gray-100 bg-gray-50'
@@ -52,28 +54,35 @@ function CriterionInput({
       </div>
 
       <div className="mt-4 flex items-center gap-2">
-        {[0, 1, 2, 3, 4, 5].map((v) => (
+        {binaryOnly && (
+          <span className="text-xs text-gray-400 italic mr-1">Oui (5) / Non (0) :</span>
+        )}
+        {allowedValues.map((v) => (
           <button
             key={v}
             type="button"
             onClick={() => onChange(v)}
-            title={SCORE_LABELS[v]}
-            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold transition-all ${
+            title={binaryOnly ? (v === 5 ? 'Oui' : 'Non') : SCORE_LABELS[v]}
+            className={`flex h-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold transition-all ${
+              binaryOnly ? 'w-14 px-2' : 'w-8'
+            } ${
               value === v
                 ? 'border border-blue-500 bg-blue-50 text-blue-700'
                 : 'border border-gray-200 bg-white text-gray-500 hover:border-blue-300 hover:text-blue-600'
             }`}
           >
-            {v}
+            {binaryOnly ? (v === 5 ? 'Oui' : 'Non') : v}
           </button>
         ))}
-        <span className="ml-2 flex-1 text-xs italic text-gray-400">{SCORE_LABELS[value]}</span>
+        {!binaryOnly && (
+          <span className="ml-2 flex-1 text-xs italic text-gray-400">{SCORE_LABELS[value]}</span>
+        )}
         <span className="text-xs font-semibold text-gray-500">
           {value * coefficient}/{5 * coefficient} pts
         </span>
       </div>
 
-      {(value === 1 || value === 5) && (
+      {((touched && value === 0) || value === 1 || value === 5) && (
         <div className="mt-2">
           <textarea
             value={comment}
@@ -96,13 +105,14 @@ function CriterionInput({
 }
 
 function CriterionView({
-  num, label, coefficient, score,
-}: { num: number; label: string; coefficient: number; score: number }) {
+  num, label, coefficient, score, binaryOnly,
+}: { num: number; label: string; coefficient: number; score: number; binaryOnly?: boolean }) {
   const chip =
     score >= 4 ? 'bg-green-100 text-green-700' :
     score >= 3 ? 'bg-blue-100 text-blue-700' :
     score >= 2 ? 'bg-amber-100 text-amber-700' :
     'bg-red-100 text-red-600';
+  const scoreLabel = binaryOnly ? (score === 5 ? 'Oui' : 'Non') : SCORE_LABELS[score];
   return (
     <div className="flex items-center gap-3 rounded-lg border border-gray-100 bg-gray-50 px-5 py-4">
       <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-600">
@@ -110,7 +120,7 @@ function CriterionView({
       </span>
       <span className="flex-1 text-sm leading-snug text-gray-700">{label}</span>
       <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold ${chip}`}>
-        {score} — {SCORE_LABELS[score]}
+        {score} — {scoreLabel}
       </span>
       <span className="shrink-0 text-xs text-gray-400">{score * coefficient}/{5 * coefficient} pts</span>
     </div>
@@ -120,19 +130,22 @@ function CriterionView({
 export default function EvaluationFormPage({ businessPlanId }: { businessPlanId: number }) {
   const router = useRouter();
   const { data: businessPlan, isLoading: loadingBP } = useBusinessPlanById(businessPlanId);
-  const { data: evaluations = [], isLoading: loadingEvals } =
-    useEvaluationsByBusinessPlan(businessPlanId);
+  const { data: gaps = {} } = useEvaluationGaps(businessPlanId);
   const { data: myEvaluations = [], isLoading: loadingMine } = useMyEvaluations();
   const { mutate: submit, isPending } = useSubmitEvaluation(businessPlanId);
 
   const defaultScores = Object.fromEntries(CRITERIA.map((c) => [c.key, 0])) as Record<string, number>;
   const [scores, setScores] = useState(defaultScores);
   const [criterionComments, setCriterionComments] = useState<Record<string, string>>({});
+  const [touchedCriteria, setTouchedCriteria] = useState<Set<string>>(new Set());
   const [globalComment, setGlobalComment] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [editMode, setEditMode] = useState(false);
 
   const myEval = myEvaluations.find((e) => e.businessPlanId === businessPlanId);
   const alreadyEvaluated = !!myEval;
+
+  const { mutate: update, isPending: isUpdating } = useUpdateEvaluation(myEval?.id ?? 0, businessPlanId);
 
   const total = CRITERIA.reduce(
     (sum, c) => sum + (scores[c.key as string] ?? 0) * c.coefficient, 0,
@@ -142,41 +155,72 @@ export default function EvaluationFormPage({ businessPlanId }: { businessPlanId:
     totalPct >= 70 ? 'text-green-600' : totalPct >= 40 ? 'text-amber-500' : 'text-red-500';
 
   const gapCriteria = useMemo(() => {
-    if (evaluations.length === 0) return new Set<string>();
+    if (Object.keys(gaps).length === 0) return new Set<string>();
     const flagged = new Set<string>();
-    for (const ev of evaluations) {
-      for (const c of CRITERIA) {
-        if (Math.abs((scores[c.key as string] ?? 0) - ((ev as any)[c.key as string] ?? 0)) > 3) {
-          flagged.add(c.key as string);
-        }
+    for (const c of CRITERIA) {
+      const avg = gaps[c.key as string];
+      if (avg != null && Math.abs((scores[c.key as string] ?? 0) - avg) > 3) {
+        flagged.add(c.key as string);
       }
     }
     return flagged;
-  }, [scores, evaluations]);
+  }, [scores, gaps]);
 
   const sections = Array.from(new Set(CRITERIA.map((c) => c.section)));
 
   const missingComments = CRITERIA.filter(
-    (c) => (scores[c.key as string] === 1 || scores[c.key as string] === 5)
+    (c) => ((touchedCriteria.has(c.key as string) && scores[c.key as string] === 0)
+        || scores[c.key as string] === 1
+        || scores[c.key as string] === 5)
       && !criterionComments[c.key as string]?.trim(),
   );
 
+  const buildScoresPayload = () =>
+    Object.fromEntries(CRITERIA.map((c) => [c.key, scores[c.key as string] ?? 0])) as any;
+
+  const buildCommentsPayload = () => {
+    const filtered = Object.fromEntries(Object.entries(criterionComments).filter(([, v]) => v.trim()));
+    return Object.keys(filtered).length ? filtered : undefined;
+  };
+
   const handleSubmit = () => {
     if (missingComments.length > 0) return;
-    const criteriaCommentsPayload = Object.fromEntries(
-      Object.entries(criterionComments).filter(([, v]) => v.trim()),
-    );
     const payload: EvaluationInput = {
       businessPlanId,
-      ...(Object.fromEntries(CRITERIA.map((c) => [c.key, scores[c.key as string] ?? 0])) as any),
+      ...buildScoresPayload(),
       conflictOfInterestDeclared: false,
       globalComment: globalComment || undefined,
-      criteriaComments: Object.keys(criteriaCommentsPayload).length ? criteriaCommentsPayload : undefined,
+      criteriaComments: buildCommentsPayload(),
     };
     submit(payload, { onSuccess: () => setSubmitted(true) });
   };
 
-  if (loadingBP || loadingEvals || loadingMine) {
+  const handleUpdate = () => {
+    if (missingComments.length > 0) return;
+    const payload = {
+      ...buildScoresPayload(),
+      globalComment: globalComment || undefined,
+      criteriaComments: buildCommentsPayload(),
+    };
+    update(payload, { onSuccess: () => setEditMode(false) });
+  };
+
+  const initEditMode = () => {
+    if (!myEval) return;
+    setScores(Object.fromEntries(CRITERIA.map((c) => [c.key, (myEval as any)[c.key as string] ?? 0])));
+    setCriterionComments(myEval.criteriaComments ?? {});
+    const touched = new Set<string>();
+    for (const c of CRITERIA) {
+      const score = (myEval as any)[c.key as string] ?? 0;
+      const hasComment = !!(myEval.criteriaComments?.[c.key as string]?.trim());
+      if (score === 1 || score === 5 || (score === 0 && hasComment)) touched.add(c.key as string);
+    }
+    setTouchedCriteria(touched);
+    setGlobalComment(myEval.globalComment ?? '');
+    setEditMode(true);
+  };
+
+  if (loadingBP || loadingMine) {
     return (
       <div className="flex h-64 items-center justify-center">
         <Loader variant="spinner" size="lg" />
@@ -205,7 +249,6 @@ export default function EvaluationFormPage({ businessPlanId }: { businessPlanId:
             {STATUS_LABELS[businessPlan.status.code] ?? businessPlan.status.name}
           </Badge>
         )}
-        <span className="text-sm font-medium text-gray-700">{businessPlan.projectTitle}</span>
       </div>
 
       {/* ── Chiffres clés ── */}
@@ -231,7 +274,7 @@ export default function EvaluationFormPage({ businessPlanId }: { businessPlanId:
       </div>
 
       {/* ── Corps ── */}
-      {submitted || alreadyEvaluated ? (
+      {submitted || (alreadyEvaluated && !editMode) ? (
         <div className="space-y-8">
           <div className={`flex items-center gap-3 rounded-xl border px-4 py-3 ${
             submitted ? 'border-green-200 bg-green-50' : 'border-blue-200 bg-blue-50'
@@ -266,6 +309,7 @@ export default function EvaluationFormPage({ businessPlanId }: { businessPlanId:
                           num={c.num}
                           label={c.label}
                           coefficient={c.coefficient}
+                          binaryOnly={c.binaryOnly}
                           score={(myEval as any)[c.key as string] ?? 0}
                         />
                       ))}
@@ -293,7 +337,12 @@ export default function EvaluationFormPage({ businessPlanId }: { businessPlanId:
             </>
           )}
 
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between">
+            {!submitted && !myEval?.isFinalEvaluation ? (
+              <Button size="sm" onClick={initEditMode}>
+                Modifier mon évaluation
+              </Button>
+            ) : <span />}
             <Button variant="outline" size="sm" onClick={() => router.push(routes.evaluation.search)}>
               Évaluer un autre plan
             </Button>
@@ -307,11 +356,10 @@ export default function EvaluationFormPage({ businessPlanId }: { businessPlanId:
               <div>
                 <p className="text-sm font-semibold text-amber-800">Écart significatif détecté</p>
                 <p className="mt-0.5 text-sm text-amber-700">
-                  Écart de plus de 3 pts sur les critères{' '}
+                  Écart de plus de 3 pts avec la moyenne des évaluations existantes sur les critères{' '}
                   <span className="font-semibold">
                     {CRITERIA.filter((c) => gapCriteria.has(c.key as string)).map((c) => `n°${c.num}`).join(', ')}
-                  </span>{' '}
-                  par rapport à une évaluation existante.
+                  </span>.
                 </p>
               </div>
             </div>
@@ -336,12 +384,15 @@ export default function EvaluationFormPage({ businessPlanId }: { businessPlanId:
                       num={c.num}
                       label={c.label}
                       coefficient={c.coefficient}
+                      binaryOnly={c.binaryOnly}
                       value={scores[c.key as string] ?? 0}
                       hasGap={gapCriteria.has(c.key as string)}
                       comment={criterionComments[c.key as string] ?? ''}
+                      touched={touchedCriteria.has(c.key as string)}
                       onChange={(v) => {
+                        setTouchedCriteria((prev) => new Set([...prev, c.key as string]));
                         setScores((prev) => ({ ...prev, [c.key as string]: v }));
-                        if (v !== 1 && v !== 5) {
+                        if (v !== 0 && v !== 1 && v !== 5) {
                           setCriterionComments((prev) => {
                             const next = { ...prev };
                             delete next[c.key as string];
@@ -375,13 +426,18 @@ export default function EvaluationFormPage({ businessPlanId }: { businessPlanId:
             rows={3}
           />
 
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-3">
+            {editMode && (
+              <Button variant="outline" size="sm" onClick={() => setEditMode(false)}>
+                Annuler
+              </Button>
+            )}
             <Button
-              onClick={handleSubmit}
-              isLoading={isPending}
-              disabled={isPending || missingComments.length > 0}
+              onClick={editMode ? handleUpdate : handleSubmit}
+              isLoading={editMode ? isUpdating : isPending}
+              disabled={(editMode ? isUpdating : isPending) || missingComments.length > 0}
             >
-              Soumettre l'évaluation
+              {editMode ? 'Enregistrer les modifications' : "Soumettre l'évaluation"}
             </Button>
           </div>
         </div>

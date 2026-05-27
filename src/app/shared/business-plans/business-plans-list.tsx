@@ -32,7 +32,7 @@ const fmtDate = (d?: string | null) =>
       })
     : '—';
 
-const LIMIT = 20;
+const LIMIT = 10;
 
 const columnHelper = createColumnHelper<BusinessPlan>();
 

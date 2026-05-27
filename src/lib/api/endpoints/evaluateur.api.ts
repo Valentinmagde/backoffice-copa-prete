@@ -29,6 +29,10 @@ class EvaluateurApi {
     return apiClient.get<Evaluation[]>(`${this.base}/business-plans/${businessPlanId}`);
   }
 
+  async getEvaluationGaps(businessPlanId: number): Promise<Record<string, number>> {
+    return apiClient.get<Record<string, number>>(`${this.base}/business-plans/${businessPlanId}/gaps`);
+  }
+
   async createAssignment(data: {
     businessPlanId: number;
     evaluatorId: number;
@@ -40,6 +44,10 @@ class EvaluateurApi {
 
   async submitEvaluation(data: EvaluationInput): Promise<Evaluation> {
     return apiClient.post<Evaluation>(`${this.base}`, data);
+  }
+
+  async updateEvaluation(id: number, data: Partial<EvaluationInput>): Promise<Evaluation> {
+    return apiClient.put<Evaluation>(`${this.base}/${id}`, data);
   }
 
   async getMyEvaluations(): Promise<Evaluation[]> {

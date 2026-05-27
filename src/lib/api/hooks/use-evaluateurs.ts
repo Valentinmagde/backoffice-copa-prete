@@ -3,6 +3,7 @@ import { evaluateurApi } from '../endpoints/evaluateur.api';
 import type { EvaluationInput } from '../types/evaluateur.types';
 import toast from 'react-hot-toast';
 
+
 const keys = {
   evaluators: () => ['evaluators'] as const,
   myEvaluations: () => ['my-evaluations'] as const,
@@ -48,6 +49,14 @@ export function useEvaluationsByBusinessPlan(businessPlanId: number | null | und
   });
 }
 
+export function useEvaluationGaps(businessPlanId: number | null | undefined) {
+  return useQuery({
+    queryKey: ['evaluation-gaps', businessPlanId] as const,
+    queryFn: () => evaluateurApi.getEvaluationGaps(businessPlanId!),
+    enabled: !!businessPlanId,
+  });
+}
+
 export function useEvaluationStats() {
   return useQuery({ queryKey: keys.stats(), queryFn: () => evaluateurApi.getStats() });
 }
@@ -76,5 +85,18 @@ export function useSubmitEvaluation(businessPlanId: number) {
       toast.success('Évaluation soumise avec succès');
     },
     onError: () => toast.error("Erreur lors de la soumission de l'évaluation"),
+  });
+}
+
+export function useUpdateEvaluation(evaluationId: number, businessPlanId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Partial<EvaluationInput>) => evaluateurApi.updateEvaluation(evaluationId, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.evaluationsByBusinessPlan(businessPlanId) });
+      qc.invalidateQueries({ queryKey: keys.myEvaluations() });
+      toast.success('Évaluation mise à jour avec succès');
+    },
+    onError: () => toast.error("Erreur lors de la mise à jour de l'évaluation"),
   });
 }

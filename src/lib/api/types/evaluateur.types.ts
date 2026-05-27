@@ -43,6 +43,7 @@ export interface Evaluation {
   criterion13Score: number;
   criterion14Score: number;
   criterion15Score: number;
+  criterion16Score: number;
   totalScore: number;
   recommendation: string;
   globalComment?: string;
@@ -83,6 +84,7 @@ export interface EvaluationInput {
   criterion10Score: number;
   criterion11Score: number;
   criterion12Score: number;
+  criterion16Score: number;
   criterion13Score: number;
   criterion14Score: number;
   criterion15Score: number;
@@ -98,6 +100,7 @@ export interface EvaluationCriterion {
   label: string;
   coefficient: number;
   section: string;
+  binaryOnly?: boolean;
 }
 
 export const SCORE_CRITERIA: EvaluationCriterion[] = [
@@ -115,12 +118,13 @@ export const SCORE_CRITERIA: EvaluationCriterion[] = [
   { key: 'criterion9Score',  num: 9,  section: 'C. Moyens techniques à mettre en œuvre',        label: "Les équipements nécessaires sont disponibles et acquérables, ainsi que la possibilité d'avoir des pièces de rechange",             coefficient: 2 },
   { key: 'criterion10Score', num: 10, section: 'C. Moyens techniques à mettre en œuvre',        label: 'Le processus de fabrication est maîtrisé',                                                                                         coefficient: 3 },
   // D. Impact environnemental et social
-  { key: 'criterion11Score', num: 11, section: 'D. Impact environnemental et social',            label: "L'entreprise a intégré dans son approche la question de la protection de l'environnement (mesures d'atténuation) ou de résilience climatique", coefficient: 2 },
-  { key: 'criterion12Score', num: 12, section: 'D. Impact environnemental et social',            label: "L'entreprise a intégré dans son approche la question d'inclusion sociale, la prise en compte des communautés locales et des personnes vulnérables", coefficient: 2 },
+  { key: 'criterion11Score', num: 11, section: 'D. Impact environnemental et social',            label: "L'entreprise a intégré dans son approche la question de la protection de l'environnement (mesures d'atténuation) ou de résilience climatique", coefficient: 1.5 },
+  { key: 'criterion12Score', num: 12, section: 'D. Impact environnemental et social',            label: "L'entreprise a intégré dans son approche la question d'inclusion sociale, la prise en compte des communautés locales et des personnes vulnérables", coefficient: 1.5 },
+  { key: 'criterion16Score', num: 13, section: 'D. Impact environnemental et social',            label: "L'entreprise est-elle dirigée par une femme, un réfugié, un batwa, un albinos ou une personne vivant avec un autre handicap ?", coefficient: 1, binaryOnly: true },
   // E. Études économiques et financières
-  { key: 'criterion13Score', num: 13, section: 'E. Études économiques et financières',           label: "Les chiffres utilisés dans la partie économique et financière et les autres parties du business plan sont cohérents",              coefficient: 2 },
-  { key: 'criterion14Score', num: 14, section: 'E. Études économiques et financières',           label: 'La demande de financement est claire, chiffrée et cohérente',                                                                     coefficient: 2 },
-  { key: 'criterion15Score', num: 15, section: 'E. Études économiques et financières',           label: "Les marges sont connues et l'activité est rentable",                                                                               coefficient: 2 },
+  { key: 'criterion13Score', num: 14, section: 'E. Études économiques et financières',           label: "Les chiffres utilisés dans la partie économique et financière et les autres parties du business plan sont cohérents",              coefficient: 2 },
+  { key: 'criterion14Score', num: 15, section: 'E. Études économiques et financières',           label: 'La demande de financement est claire, chiffrée et cohérente',                                                                     coefficient: 2 },
+  { key: 'criterion15Score', num: 16, section: 'E. Études économiques et financières',           label: "Les marges sont connues et l'activité est rentable",                                                                               coefficient: 2 },
 ];
 
 export const SCORE_LABELS: Record<number, string> = {
