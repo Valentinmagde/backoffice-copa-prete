@@ -74,9 +74,10 @@ function CriterionInput({
             {binaryOnly ? (v === 5 ? 'Oui' : 'Non') : v}
           </button>
         ))}
-        {!binaryOnly && (
-          <span className="ml-2 flex-1 text-xs italic text-gray-400">{SCORE_LABELS[value]}</span>
-        )}
+        {binaryOnly
+          ? <span className="flex-1" />
+          : <span className="ml-2 flex-1 text-xs italic text-gray-400">{SCORE_LABELS[value]}</span>
+        }
         <span className="text-xs font-semibold text-gray-500">
           {value * coefficient}/{5 * coefficient} pts
         </span>
