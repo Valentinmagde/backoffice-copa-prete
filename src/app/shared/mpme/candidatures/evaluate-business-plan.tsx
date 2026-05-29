@@ -415,7 +415,8 @@ export default function EvaluateBusinessPlan({ beneficiaryId, beneficiaryName }:
               const evalName = ev.evaluator?.user
                 ? `${ev.evaluator.user.firstName} ${ev.evaluator.user.lastName}`
                 : `Évaluateur #${ev.evaluatorId}`;
-              const scoreColor = ev.totalScore >= 70 ? 'text-green-600' : ev.totalScore >= 40 ? 'text-amber-500' : 'text-red-500';
+              const evTotal = CRITERIA.reduce((sum, c) => sum + ((ev as any)[c.key as string] ?? 0) * c.coefficient, 0);
+              const scoreColor = evTotal >= 70 ? 'text-green-600' : evTotal >= 40 ? 'text-amber-500' : 'text-red-500';
               return (
                 <div key={ev.id} className="rounded-xl border border-gray-200 bg-white p-4">
                   <div className="mb-3 flex items-start justify-between gap-2">
@@ -434,7 +435,7 @@ export default function EvaluateBusinessPlan({ beneficiaryId, beneficiaryName }:
                           <PiStar className="size-3" /> Finale
                         </Badge>
                       )}
-                      <span className={`text-xl font-bold ${scoreColor}`}>{ev.totalScore}/{TOTAL_MAX}</span>
+                      <span className={`text-xl font-bold ${scoreColor}`}>{evTotal}/{TOTAL_MAX}</span>
                     </div>
                   </div>
 

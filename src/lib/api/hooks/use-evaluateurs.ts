@@ -82,6 +82,7 @@ export function useSubmitEvaluation(businessPlanId: number) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: keys.evaluationsByBusinessPlan(businessPlanId) });
       qc.invalidateQueries({ queryKey: keys.assignmentsByBusinessPlan(businessPlanId) });
+      qc.invalidateQueries({ queryKey: keys.myEvaluations() });
       toast.success('Évaluation soumise avec succès');
     },
     onError: () => toast.error("Erreur lors de la soumission de l'évaluation"),

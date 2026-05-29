@@ -26,11 +26,11 @@ class EvaluateurApi {
    * GET /evaluations/business-plans/:id
    */
   async getEvaluationsByBusinessPlan(businessPlanId: number): Promise<Evaluation[]> {
-    return apiClient.get<Evaluation[]>(`${this.base}/business-plans/${businessPlanId}`);
+    return apiClient.get<Evaluation[]>(`${this.base}/business-plans/${businessPlanId}`, { skipCache: true });
   }
 
   async getEvaluationGaps(businessPlanId: number): Promise<Record<string, number>> {
-    return apiClient.get<Record<string, number>>(`${this.base}/business-plans/${businessPlanId}/gaps`);
+    return apiClient.get<Record<string, number>>(`${this.base}/business-plans/${businessPlanId}/gaps`, { skipCache: true });
   }
 
   async createAssignment(data: {
@@ -51,7 +51,7 @@ class EvaluateurApi {
   }
 
   async getMyEvaluations(): Promise<Evaluation[]> {
-    return apiClient.get<Evaluation[]>(`${this.base}/my/evaluations`);
+    return apiClient.get<Evaluation[]>(`${this.base}/my/evaluations`, { skipCache: true });
   }
 
   async getStats(): Promise<any> {

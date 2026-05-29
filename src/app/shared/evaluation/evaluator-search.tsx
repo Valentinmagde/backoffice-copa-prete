@@ -10,7 +10,7 @@ import Table from '@core/components/table';
 import TablePagination from '@core/components/table/pagination';
 import { useBusinessPlans } from '@/lib/api/hooks/use-business-plan';
 import { useMyEvaluations } from '@/lib/api/hooks/use-evaluateurs';
-import { TOTAL_MAX } from '@/lib/api/types/evaluateur.types';
+import { SCORE_CRITERIA as CRITERIA, TOTAL_MAX } from '@/lib/api/types/evaluateur.types';
 import type { Evaluation } from '@/lib/api/types/evaluateur.types';
 import { routes } from '@/config/routes';
 import type { BusinessPlan } from '@/lib/api/endpoints/business-plan.api';
@@ -134,11 +134,12 @@ const buildEvalColumns = (onView: (businessPlanId: number) => void) => [
       </span>
     ),
   }),
-  evalColumnHelper.accessor('totalScore', {
+  evalColumnHelper.display({
     id: 'totalScore',
     header: 'Score',
-    cell: ({ getValue }) => {
-      const score = getValue() ?? 0;
+    cell: ({ row }) => {
+      const ev = row.original;
+      const score = CRITERIA.reduce((sum, c) => sum + ((ev as any)[c.key as string] ?? 0) * c.coefficient, 0);
       const pct = Math.round((score / TOTAL_MAX) * 100);
       const color = pct >= 70 ? 'text-green-600' : pct >= 40 ? 'text-amber-500' : 'text-red-500';
       return (
