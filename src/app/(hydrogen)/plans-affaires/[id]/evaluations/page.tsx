@@ -1,8 +1,8 @@
 'use client';
 
-import { use, Suspense, Fragment } from 'react';
-import { Loader, Badge, Text } from 'rizzui';
-import { PiStar } from 'react-icons/pi';
+import React, { use, Suspense, Fragment } from 'react';
+import { Loader, Badge, Text, Tooltip, ActionIcon } from 'rizzui';
+import { PiStar, PiPrinter, PiDownloadSimple } from 'react-icons/pi';
 import { useEvaluationsByBusinessPlan } from '@/lib/api/hooks/use-evaluateurs';
 import type { Evaluation } from '@/lib/api/types/evaluateur.types';
 import { SCORE_CRITERIA as CRITERIA, TOTAL_MAX } from '@/lib/api/types/evaluateur.types';
@@ -48,8 +48,11 @@ function EvaluationsGrid({ evaluations }: { evaluations: Evaluation[] }) {
 
   const sections = Array.from(new Set(CRITERIA.map((c) => c.section)));
 
-  const avgTotal = evaluations.length > 0
-    ? evaluations.reduce((s, e) => s + e.totalScore, 0) / evaluations.length
+  const evalTotals = evaluations.map((e) =>
+    CRITERIA.reduce((sum, c) => sum + ((e as any)[c.key as string] ?? 0) * c.coefficient, 0),
+  );
+  const avgTotal = evalTotals.length > 0
+    ? evalTotals.reduce((s, t) => s + t, 0) / evalTotals.length
     : null;
 
   return (
@@ -108,10 +111,9 @@ function EvaluationsGrid({ evaluations }: { evaluations: Evaluation[] }) {
                     : null;
                   const weighted = avg !== null ? avg * c.coefficient : null;
                   const maxW     = 5 * c.coefficient;
-                  const comments = evaluations
-                    .map((ev) => ev.criteriaComments?.[c.key as string])
-                    .filter(Boolean)
-                    .join(' · ');
+                  const slotComments = slots.map((ev) =>
+                    ev?.criteriaComments?.[c.key as string] ?? null,
+                  );
 
                   return (
                     <tr key={c.key as string} className="border-b border-muted hover:bg-gray-50">
@@ -120,17 +122,28 @@ function EvaluationsGrid({ evaluations }: { evaluations: Evaluation[] }) {
                         {c.label}
                       </td>
 
-                      {scores.map((score, i) => (
-                        <td key={i} className="px-3 py-4 text-center">
-                          {score !== null ? (
-                            <span className={`inline-block rounded px-2 py-0.5 text-xs font-bold ${scoreClass(score)}`}>
-                              {score}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-gray-300">—</span>
-                          )}
-                        </td>
-                      ))}
+                      {scores.map((score, i) => {
+                        const comment = slotComments[i];
+                        const badge = score !== null ? (
+                          <span className={`inline-block rounded px-2 py-0.5 text-xs font-bold ${scoreClass(score)}`}>
+                            {score}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-300">—</span>
+                        );
+                        return (
+                          <td key={i} className="px-3 py-4 text-center">
+                            {comment ? (
+                              <Tooltip content={comment} placement="top">
+                                <span className="relative inline-block cursor-help">
+                                  {badge}
+                                  <span className="absolute -right-0.5 -top-0.5 size-1.5 rounded-full bg-blue-400" />
+                                </span>
+                              </Tooltip>
+                            ) : badge}
+                          </td>
+                        );
+                      })}
 
                       <td className="px-3 py-4 text-center">
                         {avg !== null ? (
@@ -152,7 +165,26 @@ function EvaluationsGrid({ evaluations }: { evaluations: Evaluation[] }) {
                         ) : '—'}
                       </td>
 
-                      <td className="px-3 py-4 text-xs text-gray-500">{comments}</td>
+                      <td className="px-3 py-4 text-xs text-gray-500">
+                        {slots
+                          .map((ev, i) => {
+                            const text = ev?.criteriaComments?.[c.key as string];
+                            if (!text) return null;
+                            const name = ev?.evaluator?.user
+                              ? `${ev.evaluator.user.firstName} ${ev.evaluator.user.lastName}`
+                              : `Évaluateur ${i + 1}`;
+                            return (
+                              <span key={i}>
+                                {text}{' '}
+                                <span className="font-semibold text-primary-600">({name})</span>
+                              </span>
+                            );
+                          })
+                          .filter(Boolean)
+                          .reduce<React.ReactNode[]>((acc, node, i) => (
+                            i === 0 ? [node] : [...acc, <span key={`sep-${i}`} className="mx-1 text-gray-300">·</span>, node]
+                          ), [])}
+                      </td>
                     </tr>
                   );
                 })}
@@ -165,17 +197,22 @@ function EvaluationsGrid({ evaluations }: { evaluations: Evaluation[] }) {
             <td className="px-3 py-4 text-xs font-bold uppercase tracking-wider text-gray-700">
               Total de l'évaluation sur {TOTAL_MAX}
             </td>
-            {slots.map((ev, i) => (
-              <td key={i} className="px-3 py-4 text-center">
-                {ev ? (
-                  <span className={`text-sm font-bold ${totalClass((ev.totalScore / TOTAL_MAX) * 100)}`}>
-                    {ev.totalScore}
-                  </span>
-                ) : (
-                  <span className="text-xs text-gray-300">—</span>
-                )}
-              </td>
-            ))}
+            {slots.map((ev, i) => {
+              const t = ev
+                ? CRITERIA.reduce((sum, c) => sum + ((ev as any)[c.key as string] ?? 0) * c.coefficient, 0)
+                : null;
+              return (
+                <td key={i} className="px-3 py-4 text-center">
+                  {t !== null ? (
+                    <span className={`text-sm font-bold ${totalClass((t / TOTAL_MAX) * 100)}`}>
+                      {t}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-gray-300">—</span>
+                  )}
+                </td>
+              );
+            })}
             <td className="px-3 py-4 text-center">
               {avgTotal !== null ? (
                 <span className={`text-sm font-bold ${totalClass((avgTotal / TOTAL_MAX) * 100)}`}>
@@ -224,69 +261,160 @@ function EvaluationsContent({ businessPlanId }: { businessPlanId: number }) {
     );
   }
 
+  const handlePrint = () => window.print();
+
+  const handleExportCsv = () => {
+    const MAX = 3;
+    const slots: (Evaluation | null)[] = [
+      ...evaluations.slice(0, MAX),
+      ...Array(MAX - Math.min(evaluations.length, MAX)).fill(null),
+    ];
+    const evalNames = slots.map((ev, i) =>
+      ev?.evaluator?.user
+        ? `${ev.evaluator.user.firstName} ${ev.evaluator.user.lastName}`
+        : ev ? `Évaluateur ${i + 1}` : '',
+    );
+
+    const esc = (s: string) => `"${String(s).replace(/"/g, '""')}"`;
+
+    const headers = [
+      'N°', 'Critère', 'Section', 'Coefficient',
+      ...slots.map((_, i) => `Score ${evalNames[i] || `Évaluateur ${i + 1}`}`),
+      'Moyenne', 'Note pondérée', 'Note max', 'Commentaires',
+    ].map(esc).join(',');
+
+    const dataRows = CRITERIA.map((c) => {
+      const scores = slots.map((ev) =>
+        ev !== null ? String((ev as any)[c.key as string] ?? '') : '',
+      );
+      const valid = scores
+        .map((s, i) => (slots[i] !== null && s !== '' ? Number(s) : null))
+        .filter((s): s is number => s !== null);
+      const avg = valid.length > 0 ? valid.reduce((a, b) => a + b, 0) / valid.length : null;
+      const weighted = avg !== null ? (avg * c.coefficient).toFixed(1) : '';
+      const comments = slots
+        .map((ev, i) => {
+          const text = ev?.criteriaComments?.[c.key as string];
+          return text ? `${text} (${evalNames[i]})` : null;
+        })
+        .filter(Boolean)
+        .join(' | ');
+      return [
+        String(c.num), c.label, c.section, String(c.coefficient),
+        ...scores,
+        avg !== null ? avg.toFixed(2) : '', weighted, String(5 * c.coefficient), comments,
+      ].map(esc).join(',');
+    });
+
+    const evalTotals = evaluations.map((e) =>
+      CRITERIA.reduce((sum, c) => sum + ((e as any)[c.key as string] ?? 0) * c.coefficient, 0),
+    );
+    const avgTotal = evalTotals.length > 0
+      ? evalTotals.reduce((s, t) => s + t, 0) / evalTotals.length : null;
+    const totalRow = [
+      '', `Total /${TOTAL_MAX}`, '', '',
+      ...slots.map((ev) =>
+        ev ? String(CRITERIA.reduce((sum, c) => sum + ((ev as any)[c.key as string] ?? 0) * c.coefficient, 0)) : '',
+      ),
+      avgTotal !== null ? avgTotal.toFixed(2) : '', '', String(TOTAL_MAX), '',
+    ].map(esc).join(',');
+
+    const csv = [headers, ...dataRows, totalRow].join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `evaluations-plan-${businessPlanId}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const hasFooter = evaluations.some((ev) => ev.recommendation || ev.globalComment);
 
   return (
-    <div className="space-y-6">
-      {/* Pastilles évaluateurs */}
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm font-semibold text-gray-700">
-          Évaluations ({evaluations.length}/3)
-        </span>
-        {evaluations.map((ev, i) => (
-          <div key={ev.id}
-            className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-600"
-          >
-            <span className="font-medium">
-              {ev.evaluator?.user
-                ? `${ev.evaluator.user.firstName} ${ev.evaluator.user.lastName}`
-                : `Évaluateur ${i + 1}`}
-            </span>
-            <span className="text-gray-300">·</span>
-            <span>{fmtDate(ev.evaluationDate)}</span>
-            {ev.isFinalEvaluation && (
-              <Badge color="success" variant="flat" className="gap-1 text-xs">
-                <PiStar className="size-3" /> Finale
-              </Badge>
+    <>
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          .eval-print-zone, .eval-print-zone * { visibility: visible; }
+          .eval-print-zone { position: absolute; top: 0; left: 0; width: 100%; padding: 1rem; }
+          .eval-no-print { display: none !important; }
+        }
+      `}</style>
+
+      <div className="eval-print-zone space-y-6">
+        {/* Pastilles évaluateurs + Actions */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-semibold text-gray-700">
+            Évaluations ({evaluations.length}/3)
+          </span>
+          {evaluations.map((ev, i) => (
+            <div key={ev.id}
+              className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-600"
+            >
+              <span className="font-medium">
+                {ev.evaluator?.user
+                  ? `${ev.evaluator.user.firstName} ${ev.evaluator.user.lastName}`
+                  : `Évaluateur ${i + 1}`}
+              </span>
+              <span className="text-gray-300">·</span>
+              <span>{fmtDate(ev.evaluationDate)}</span>
+              {ev.isFinalEvaluation && (
+                <Badge color="success" variant="flat" className="gap-1 text-xs">
+                  <PiStar className="size-3" /> Finale
+                </Badge>
+              )}
+            </div>
+          ))}
+          <div className="eval-no-print ml-auto flex gap-2">
+            <Tooltip content="Exporter en CSV" placement="top">
+              <ActionIcon variant="outline" size="sm" onClick={handleExportCsv}>
+                <PiDownloadSimple className="size-4" />
+              </ActionIcon>
+            </Tooltip>
+            <Tooltip content="Imprimer / Exporter PDF" placement="top">
+              <ActionIcon variant="outline" size="sm" onClick={handlePrint}>
+                <PiPrinter className="size-4" />
+              </ActionIcon>
+            </Tooltip>
+          </div>
+        </div>
+
+        {/* Tableau de synthèse */}
+        <EvaluationsGrid evaluations={evaluations} />
+
+        {/* Recommandations & commentaires globaux */}
+        {hasFooter && (
+          <div className="grid gap-4 sm:grid-cols-3">
+            {evaluations.map((ev, i) =>
+              ev.recommendation || ev.globalComment ? (
+                <div key={ev.id} className="space-y-3 rounded-xl border border-gray-200 bg-white p-4">
+                  <p className="text-xs font-semibold text-gray-500">
+                    {ev.evaluator?.user
+                      ? `${ev.evaluator.user.firstName} ${ev.evaluator.user.lastName}`
+                      : `Évaluateur ${i + 1}`}
+                  </p>
+                  {ev.recommendation && (
+                    <div className="rounded-lg bg-blue-50 px-3 py-2">
+                      <p className="mb-0.5 text-xs text-gray-400">Recommandation</p>
+                      <p className="text-sm font-medium text-blue-700">
+                        {RECOMMENDATION_LABELS[ev.recommendation] ?? ev.recommendation}
+                      </p>
+                    </div>
+                  )}
+                  {ev.globalComment && (
+                    <div className="rounded-lg bg-gray-50 px-3 py-2">
+                      <p className="mb-0.5 text-xs text-gray-400">Commentaire général</p>
+                      <p className="text-sm text-gray-700">{ev.globalComment}</p>
+                    </div>
+                  )}
+                </div>
+              ) : null,
             )}
           </div>
-        ))}
+        )}
       </div>
-
-      {/* Tableau de synthèse */}
-      <EvaluationsGrid evaluations={evaluations} />
-
-      {/* Recommandations & commentaires globaux */}
-      {hasFooter && (
-        <div className="grid gap-4 sm:grid-cols-3">
-          {evaluations.map((ev, i) =>
-            ev.recommendation || ev.globalComment ? (
-              <div key={ev.id} className="space-y-3 rounded-xl border border-gray-200 bg-white p-4">
-                <p className="text-xs font-semibold text-gray-500">
-                  {ev.evaluator?.user
-                    ? `${ev.evaluator.user.firstName} ${ev.evaluator.user.lastName}`
-                    : `Évaluateur ${i + 1}`}
-                </p>
-                {ev.recommendation && (
-                  <div className="rounded-lg bg-blue-50 px-3 py-2">
-                    <p className="mb-0.5 text-xs text-gray-400">Recommandation</p>
-                    <p className="text-sm font-medium text-blue-700">
-                      {RECOMMENDATION_LABELS[ev.recommendation] ?? ev.recommendation}
-                    </p>
-                  </div>
-                )}
-                {ev.globalComment && (
-                  <div className="rounded-lg bg-gray-50 px-3 py-2">
-                    <p className="mb-0.5 text-xs text-gray-400">Commentaire général</p>
-                    <p className="text-sm text-gray-700">{ev.globalComment}</p>
-                  </div>
-                )}
-              </div>
-            ) : null,
-          )}
-        </div>
-      )}
-    </div>
+    </>
   );
 }
 
