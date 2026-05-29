@@ -176,7 +176,7 @@ export default function BusinessPlansList() {
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <Input
           type="search"
-          placeholder="Rechercher par référence..."
+          placeholder="Rechercher par référence ou code bénéficiaire..."
           value={search}
           onClear={() => setSearch('')}
           onChange={(e) => {

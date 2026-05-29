@@ -1,7 +1,7 @@
 'use client';
 
 import { use } from 'react';
-import { Loader, Text, Button, Badge } from 'rizzui';
+import { Loader, Text, Badge, Button } from 'rizzui';
 import FormGroup from '@/app/shared/form-group';
 import { PiFile, PiDownloadSimple, PiCheckCircle, PiXCircle, PiClock } from 'react-icons/pi';
 import { useBusinessPlanDocument } from '@/lib/api/hooks/use-business-plan';
@@ -49,58 +49,66 @@ export default function BusinessPlanDocumentsPage({ params }: { params: Promise<
     );
   }
 
+  const documents = document ? [document] : [];
+
   return (
     <div className="@container space-y-8">
       <FormGroup
-        title="Document du plan"
-        description="Fichier PDF soumis par le bénéficiaire"
+        title="Documents soumis"
+        description={`${documents.length} document(s) trouvé(s)`}
         className="@3xl:grid-cols-12"
       >
-        <div className="@3xl:col-span-8">
-          {!document ? (
+        <div className="@3xl:col-span-8 space-y-3">
+          {documents.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 p-12 text-center">
               <PiFile className="mb-3 size-12 text-gray-300" />
               <Text className="text-gray-500">Aucun document soumis pour ce plan d'affaires</Text>
             </div>
           ) : (
-            <div className="flex items-center justify-between gap-4 rounded-lg border border-muted bg-white p-5">
-              <div className="flex items-center gap-4">
-                <div className="rounded-lg bg-primary-50 p-3">
-                  <PiFile className="size-6 text-primary-500" />
-                </div>
-                <div>
-                  <Text className="text-sm font-semibold text-gray-800">
-                    {document.documentType?.name ?? 'Plan d\'affaires'}
-                  </Text>
-                  <Text className="text-sm text-gray-500">{document.originalFilename}</Text>
-                  <div className="mt-1 flex items-center gap-2 text-xs text-gray-400">
-                    {fmtSize(document.fileSizeBytes) && <span>{fmtSize(document.fileSizeBytes)}</span>}
-                    {document.mimeType && <span>• {document.mimeType}</span>}
-                    <span>• Soumis le {new Date(document.uploadedAt).toLocaleDateString('fr-FR')}</span>
+            documents.map((doc) => (
+              <div
+                key={doc.id}
+                className="flex items-center justify-between gap-4 rounded-lg border border-muted bg-white p-4"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg bg-primary-50 p-2">
+                    <PiFile className="size-5 text-primary-500" />
+                  </div>
+                  <div>
+                    <Text className="text-sm font-medium text-gray-800">
+                      {doc.documentType?.name ?? "Plan d'affaires"}
+                    </Text>
+                    <Text className="text-xs text-gray-400">
+                      {doc.originalFilename}
+                      {fmtSize(doc.fileSizeBytes) ? ` • ${fmtSize(doc.fileSizeBytes)}` : ''}
+                    </Text>
+                    <Text className="text-xs text-gray-400">
+                      Uploadé le {new Date(doc.uploadedAt).toLocaleDateString('fr-FR')}
+                    </Text>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex items-center gap-3">
-                {validationIcon(document.validationStatus)}
-                <Badge color={validationColor(document.validationStatus)} variant="flat" className="hidden sm:flex">
-                  {validationLabel(document.validationStatus)}
-                </Badge>
-                {document.filePath && (
-                  <Button
-                    as="a"
-                    href={document.filePath}
-                    target="_blank"
-                    variant="outline"
-                    size="sm"
-                    className="gap-1.5"
-                  >
-                    <PiDownloadSimple className="size-4" />
-                    <span>Voir</span>
-                  </Button>
-                )}
+                <div className="flex items-center gap-3">
+                  {validationIcon(doc.validationStatus)}
+                  <Badge color={validationColor(doc.validationStatus)} variant="flat" className="hidden sm:flex">
+                    {validationLabel(doc.validationStatus)}
+                  </Badge>
+                  {doc.filePath && (
+                    <Button
+                      as="a"
+                      href={doc.filePath}
+                      target="_blank"
+                      variant="outline"
+                      size="sm"
+                      className="gap-1"
+                    >
+                      <PiDownloadSimple className="size-4" />
+                      <span className="hidden sm:inline">Voir</span>
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
+            ))
           )}
         </div>
       </FormGroup>
