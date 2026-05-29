@@ -83,7 +83,7 @@ function CriterionInput({
         </span>
       </div>
 
-      {((touched && value === 0) || value === 1 || value === 5) && (
+      {(value === 0 || value === 1 || value === 5) && (
         <div className="mt-2">
           <textarea
             value={comment}
@@ -170,7 +170,7 @@ export default function EvaluationFormPage({ businessPlanId }: { businessPlanId:
   const sections = Array.from(new Set(CRITERIA.map((c) => c.section)));
 
   const missingComments = CRITERIA.filter(
-    (c) => ((touchedCriteria.has(c.key as string) && scores[c.key as string] === 0)
+    (c) => (scores[c.key as string] === 0
         || scores[c.key as string] === 1
         || scores[c.key as string] === 5)
       && !criterionComments[c.key as string]?.trim(),
@@ -319,15 +319,21 @@ export default function EvaluationFormPage({ businessPlanId }: { businessPlanId:
                 );
               })}
 
-              <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
-                <Text className="text-sm font-medium text-gray-600">Score total pondéré</Text>
-                <span className={`text-2xl font-bold ${
-                  (myEval.totalScore / TOTAL_MAX) * 100 >= 70 ? 'text-green-600' :
-                  (myEval.totalScore / TOTAL_MAX) * 100 >= 40 ? 'text-amber-500' : 'text-red-500'
-                }`}>
-                  {myEval.totalScore}/{TOTAL_MAX}
-                </span>
-              </div>
+              {(() => {
+                const computedTotal = CRITERIA.reduce(
+                  (sum, c) => sum + ((myEval as any)[c.key as string] ?? 0) * c.coefficient, 0,
+                );
+                const pct = (computedTotal / TOTAL_MAX) * 100;
+                const color = pct >= 70 ? 'text-green-600' : pct >= 40 ? 'text-amber-500' : 'text-red-500';
+                return (
+                  <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                    <Text className="text-sm font-medium text-gray-600">Score total pondéré</Text>
+                    <span className={`text-2xl font-bold ${color}`}>
+                      {computedTotal}/{TOTAL_MAX}
+                    </span>
+                  </div>
+                );
+              })()}
 
               {myEval.globalComment && (
                 <div className="rounded-xl border border-gray-200 bg-white p-4">
@@ -429,7 +435,7 @@ export default function EvaluationFormPage({ businessPlanId }: { businessPlanId:
 
           <div className="flex justify-end gap-3">
             {editMode && (
-              <Button variant="outline" size="sm" onClick={() => setEditMode(false)}>
+              <Button variant="outline" onClick={() => setEditMode(false)}>
                 Annuler
               </Button>
             )}

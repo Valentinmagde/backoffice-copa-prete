@@ -110,7 +110,7 @@ export const SCORE_CRITERIA: EvaluationCriterion[] = [
   { key: 'criterion3Score',  num: 3,  section: "A. L'objectif et l'idée de projet",              label: "La genèse du projet est originale",                                                                                                 coefficient: 2 },
   // B. Stratégie et plan marketing
   { key: 'criterion4Score',  num: 4,  section: 'B. Stratégie et plan marketing',                 label: "Le besoin est clairement démontré et la part du marché de l'entreprise est prouvée",                                                coefficient: 2 },
-  { key: 'criterion5Score',  num: 5,  section: 'B. Stratégie et plan marketing',                 label: 'Les clients potentiels sont bien ciblés',                                                                                           coefficient: 2 },
+  { key: 'criterion5Score',  num: 5,  section: 'B. Stratégie et plan marketing',                 label: "L'intérêt de l'offre pour la clientèle et l'avantage concurrentiel sont prouvés",                                                                                           coefficient: 2 },
   { key: 'criterion6Score',  num: 6,  section: 'B. Stratégie et plan marketing',                 label: "L'étude FFOM des concurrents potentiels ainsi que le positionnement de l'entreprise sont cohérents et réalistes",                  coefficient: 2 },
   { key: 'criterion7Score',  num: 7,  section: 'B. Stratégie et plan marketing',                 label: 'Le plan marketing est cohérent et chiffré',                                                                                        coefficient: 3 },
   // C. Moyens techniques
