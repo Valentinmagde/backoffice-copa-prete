@@ -265,6 +265,9 @@ export default function EvaluateBusinessPlan({ beneficiaryId, beneficiaryName }:
   const { data: session } = useSession();
   const queryClient = useQueryClient();
   const currentUserId = session?.user?.id ? parseInt(session.user.id) : null;
+  const isAdmin = (session?.user as any)?.roles?.some((r: string) =>
+    ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER'].includes(r)
+  ) ?? false;
 
   const { data: businessPlan, isLoading: loadingBP } = useBusinessPlanByBeneficiary(beneficiaryId);
 
@@ -358,7 +361,7 @@ export default function EvaluateBusinessPlan({ beneficiaryId, beneficiaryName }:
         if (!businessPlan) return null;
         const lockedByMe = businessPlan.financialDataEvaluatorId === currentUserId;
         const lockedByOther = businessPlan.financialDataEvaluatorId !== null && !lockedByMe;
-        const canEdit = !lockedByOther;
+        const canEdit = isAdmin || !lockedByOther;
 
         const handleSave = async () => {
           if (!financialEdit || !businessPlan.id) return;
