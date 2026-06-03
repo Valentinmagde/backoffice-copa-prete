@@ -27,7 +27,7 @@ const fmtDate = (d?: string | null) =>
   d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
 const fmtAmount = (n?: number | null) =>
-  n ? `${Number(n).toLocaleString('fr-FR')} BIF` : '—';
+  n != null ? `${Number(n).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} BIF` : '—';
 
 const fmtUSD = (n?: number | null) =>
   n != null ? `${Number(n).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD` : '—';

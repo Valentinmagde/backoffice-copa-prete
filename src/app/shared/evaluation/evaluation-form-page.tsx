@@ -23,7 +23,7 @@ import type { EvaluationInput } from '@/lib/api/types/evaluateur.types';
 import { routes } from '@/config/routes';
 
 const fmtAmount = (n?: number | null) =>
-  n != null ? `${Number(n).toLocaleString('fr-FR')} BIF` : '—';
+  n != null ? `${Number(n).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} BIF` : '—';
 
 const fmtUSD = (n?: number | null) =>
   n != null ? `${Number(n).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD` : '—';
