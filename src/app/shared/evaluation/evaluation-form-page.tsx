@@ -26,7 +26,7 @@ const fmtAmount = (n?: number | null) =>
   n != null ? `${Number(n).toLocaleString('fr-FR')} BIF` : '—';
 
 const fmtUSD = (n?: number | null) =>
-  n != null ? `${Number(n).toLocaleString('fr-FR')} USD` : '—';
+  n != null ? `${Number(n).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD` : '—';
 
 const STATUS_LABELS: Record<string, string> = {
   DRAFT:            'Brouillon',

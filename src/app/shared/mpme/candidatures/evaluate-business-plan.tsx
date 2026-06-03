@@ -30,7 +30,7 @@ const fmtAmount = (n?: number | null) =>
   n ? `${Number(n).toLocaleString('fr-FR')} BIF` : '—';
 
 const fmtUSD = (n?: number | null) =>
-  n != null ? `${Number(n).toLocaleString('fr-FR')} USD` : '—';
+  n != null ? `${Number(n).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD` : '—';
 
 function ScoreBar({ value, max = TOTAL_MAX }: { value: number; max?: number }) {
   const pct = Math.min(100, Math.max(0, (value / max) * 100));
