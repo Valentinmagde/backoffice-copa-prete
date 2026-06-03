@@ -29,6 +29,9 @@ const fmtDate = (d?: string | null) =>
 const fmtAmount = (n?: number | null) =>
   n ? `${Number(n).toLocaleString('fr-FR')} BIF` : '—';
 
+const fmtUSD = (n?: number | null) =>
+  n != null ? `${Number(n).toLocaleString('fr-FR')} USD` : '—';
+
 function ScoreBar({ value, max = TOTAL_MAX }: { value: number; max?: number }) {
   const pct = Math.min(100, Math.max(0, (value / max) * 100));
   const color = pct >= 70 ? 'bg-green-500' : pct >= 40 ? 'bg-amber-500' : 'bg-red-400';
@@ -400,7 +403,7 @@ export default function EvaluateBusinessPlan({ beneficiaryId, beneficiaryName }:
             {financialEdit ? (
               <div className="space-y-3">
                 <Input
-                  label="Subvention demandée (BIF)"
+                  label="Subvention demandée (USD)"
                   value={financialEdit.verifiedFundingAmount}
                   onChange={(e) => setFinancialEdit({ ...financialEdit, verifiedFundingAmount: e.target.value })}
                   placeholder="Ex : 5000000"
@@ -408,7 +411,7 @@ export default function EvaluateBusinessPlan({ beneficiaryId, beneficiaryName }:
                   min={0}
                 />
                 <Input
-                  label="Coût total du projet (BIF)"
+                  label="Coût total du projet (USD)"
                   value={financialEdit.verifiedTotalProjectCost}
                   onChange={(e) => setFinancialEdit({ ...financialEdit, verifiedTotalProjectCost: e.target.value })}
                   placeholder="Ex : 8000000"
@@ -432,13 +435,13 @@ export default function EvaluateBusinessPlan({ beneficiaryId, beneficiaryName }:
                 <div>
                   <p className="text-xs text-gray-400">Subvention demandée</p>
                   <p className="font-medium text-gray-800">
-                    {businessPlan.verifiedFundingAmount != null ? fmtAmount(businessPlan.verifiedFundingAmount) : '—'}
+                    {businessPlan.verifiedFundingAmount != null ? fmtUSD(businessPlan.verifiedFundingAmount) : '—'}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-400">Coût total du projet</p>
                   <p className="font-medium text-gray-800">
-                    {businessPlan.verifiedTotalProjectCost != null ? fmtAmount(businessPlan.verifiedTotalProjectCost) : '—'}
+                    {businessPlan.verifiedTotalProjectCost != null ? fmtUSD(businessPlan.verifiedTotalProjectCost) : '—'}
                   </p>
                 </div>
               </div>

@@ -25,6 +25,9 @@ import { routes } from '@/config/routes';
 const fmtAmount = (n?: number | null) =>
   n != null ? `${Number(n).toLocaleString('fr-FR')} BIF` : '—';
 
+const fmtUSD = (n?: number | null) =>
+  n != null ? `${Number(n).toLocaleString('fr-FR')} USD` : '—';
+
 const STATUS_LABELS: Record<string, string> = {
   DRAFT:            'Brouillon',
   SUBMITTED:        'Soumis',
@@ -324,7 +327,7 @@ export default function EvaluationFormPage({ businessPlanId }: { businessPlanId:
             {financialEdit ? (
               <div className="space-y-3">
                 <Input
-                  label="Subvention demandée (BIF)"
+                  label="Subvention demandée (USD)"
                   value={financialEdit.verifiedFundingAmount}
                   onChange={(e) => setFinancialEdit({ ...financialEdit, verifiedFundingAmount: e.target.value })}
                   placeholder="Ex : 5000000"
@@ -332,7 +335,7 @@ export default function EvaluationFormPage({ businessPlanId }: { businessPlanId:
                   min={0}
                 />
                 <Input
-                  label="Coût total du projet (BIF)"
+                  label="Coût total du projet (USD)"
                   value={financialEdit.verifiedTotalProjectCost}
                   onChange={(e) => setFinancialEdit({ ...financialEdit, verifiedTotalProjectCost: e.target.value })}
                   placeholder="Ex : 8000000"
@@ -350,13 +353,13 @@ export default function EvaluationFormPage({ businessPlanId }: { businessPlanId:
                 <div>
                   <p className="text-xs text-gray-400">Subvention demandée</p>
                   <p className="font-medium text-gray-800">
-                    {businessPlan.verifiedFundingAmount != null ? fmtAmount(businessPlan.verifiedFundingAmount) : '—'}
+                    {businessPlan.verifiedFundingAmount != null ? fmtUSD(businessPlan.verifiedFundingAmount) : '—'}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-400">Coût total du projet</p>
                   <p className="font-medium text-gray-800">
-                    {businessPlan.verifiedTotalProjectCost != null ? fmtAmount(businessPlan.verifiedTotalProjectCost) : '—'}
+                    {businessPlan.verifiedTotalProjectCost != null ? fmtUSD(businessPlan.verifiedTotalProjectCost) : '—'}
                   </p>
                 </div>
               </div>
