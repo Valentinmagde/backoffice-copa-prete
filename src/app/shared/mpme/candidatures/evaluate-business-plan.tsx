@@ -1,8 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
 import { Badge, Button, Modal, Text, Textarea, Input, Select, Loader } from 'rizzui';
 import { PiClipboardText, PiStar, PiUserPlus, PiWarning } from 'react-icons/pi';
+import { businessPlanApi } from '@/lib/api/endpoints/business-plan.api';
 import {
   useAssignmentsByBusinessPlan,
   useEvaluationsByBusinessPlan,
@@ -259,6 +262,10 @@ function AssignModal({ businessPlanId, copaEditionId, onClose }: {
 export default function EvaluateBusinessPlan({ beneficiaryId, beneficiaryName }: {
   beneficiaryId: number; beneficiaryName: string;
 }) {
+  const { data: session } = useSession();
+  const queryClient = useQueryClient();
+  const currentUserId = session?.user?.id ? parseInt(session.user.id) : null;
+
   const { data: businessPlan, isLoading: loadingBP } = useBusinessPlanByBeneficiary(beneficiaryId);
 
   const businessPlanId = businessPlan?.id ?? null;
@@ -269,6 +276,13 @@ export default function EvaluateBusinessPlan({ beneficiaryId, beneficiaryName }:
 
   const [assignModal, setAssignModal] = useState(false);
   const [evalModal, setEvalModal] = useState<EvaluationAssignment | null>(null);
+
+  const [financialEdit, setFinancialEdit] = useState<{
+    verifiedFundingAmount: string;
+    verifiedTotalProjectCost: string;
+  } | null>(null);
+  const [financialSaving, setFinancialSaving] = useState(false);
+  const [financialError, setFinancialError] = useState<string | null>(null);
 
   if (loadingBP) {
     return <div className="flex h-64 items-center justify-center"><Loader variant="spinner" size="lg" /></div>;
@@ -338,6 +352,112 @@ export default function EvaluateBusinessPlan({ beneficiaryId, beneficiaryName }:
           </div>
         )}
       </div>
+
+      {/* ── Données financières vérifiées ── */}
+      {(() => {
+        if (!businessPlan) return null;
+        const lockedByMe = businessPlan.financialDataEvaluatorId === currentUserId;
+        const lockedByOther = businessPlan.financialDataEvaluatorId !== null && !lockedByMe;
+        const canEdit = !lockedByOther;
+
+        const handleSave = async () => {
+          if (!financialEdit || !businessPlan.id) return;
+          setFinancialSaving(true);
+          setFinancialError(null);
+          try {
+            const payload: { verifiedFundingAmount?: number; verifiedTotalProjectCost?: number } = {};
+            const funding = parseFloat(financialEdit.verifiedFundingAmount.replace(/\s/g, ''));
+            const cost = parseFloat(financialEdit.verifiedTotalProjectCost.replace(/\s/g, ''));
+            if (!isNaN(funding)) payload.verifiedFundingAmount = funding;
+            if (!isNaN(cost)) payload.verifiedTotalProjectCost = cost;
+            await businessPlanApi.updateFinancialData(businessPlan.id, payload);
+            await queryClient.invalidateQueries({ queryKey: ['business-plan', 'beneficiary', beneficiaryId] });
+            setFinancialEdit(null);
+          } catch {
+            setFinancialError('Erreur lors de la sauvegarde. Veuillez réessayer.');
+          } finally {
+            setFinancialSaving(false);
+          }
+        };
+
+        return (
+          <div className="rounded-xl border border-blue-100 bg-blue-50 p-5">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase tracking-wide text-blue-500">
+                Données financières vérifiées
+              </p>
+              {lockedByOther && (
+                <span className="text-xs text-gray-400">Saisi par un autre évaluateur</span>
+              )}
+              {lockedByMe && !financialEdit && (
+                <span className="text-xs text-green-600 font-medium">Saisi par vous</span>
+              )}
+            </div>
+
+            {financialEdit ? (
+              <div className="space-y-3">
+                <Input
+                  label="Subvention demandée (BIF)"
+                  value={financialEdit.verifiedFundingAmount}
+                  onChange={(e) => setFinancialEdit({ ...financialEdit, verifiedFundingAmount: e.target.value })}
+                  placeholder="Ex : 5000000"
+                  type="number"
+                  min={0}
+                />
+                <Input
+                  label="Coût total du projet (BIF)"
+                  value={financialEdit.verifiedTotalProjectCost}
+                  onChange={(e) => setFinancialEdit({ ...financialEdit, verifiedTotalProjectCost: e.target.value })}
+                  placeholder="Ex : 8000000"
+                  type="number"
+                  min={0}
+                />
+                {financialError && (
+                  <p className="text-xs text-red-500">{financialError}</p>
+                )}
+                <div className="flex gap-2 justify-end pt-1">
+                  <Button variant="outline" size="sm" onClick={() => { setFinancialEdit(null); setFinancialError(null); }} disabled={financialSaving}>
+                    Annuler
+                  </Button>
+                  <Button size="sm" onClick={handleSave} isLoading={financialSaving}>
+                    Enregistrer
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-xs text-gray-400">Subvention demandée</p>
+                  <p className="font-medium text-gray-800">
+                    {businessPlan.verifiedFundingAmount != null ? fmtAmount(businessPlan.verifiedFundingAmount) : '—'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Coût total du projet</p>
+                  <p className="font-medium text-gray-800">
+                    {businessPlan.verifiedTotalProjectCost != null ? fmtAmount(businessPlan.verifiedTotalProjectCost) : '—'}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {canEdit && !financialEdit && (
+              <div className="mt-3 flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setFinancialEdit({
+                    verifiedFundingAmount: businessPlan.verifiedFundingAmount?.toString() ?? '',
+                    verifiedTotalProjectCost: businessPlan.verifiedTotalProjectCost?.toString() ?? '',
+                  })}
+                >
+                  {businessPlan.financialDataEvaluatorId ? 'Modifier' : 'Saisir'}
+                </Button>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── Affectations ── */}
       <div>

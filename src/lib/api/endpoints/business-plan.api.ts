@@ -27,6 +27,9 @@ export interface BusinessPlan {
   submittedAt: string | null;
   createdAt: string;
   sections?: BusinessPlanSection[];
+  verifiedFundingAmount: number | null;
+  verifiedTotalProjectCost: number | null;
+  financialDataEvaluatorId: number | null;
 }
 
 export interface BusinessPlansResponse {
@@ -89,6 +92,13 @@ class BusinessPlanApi {
 
   async anonymize(id: number): Promise<BusinessPlan> {
     return apiClient.patch<BusinessPlan>(`${this.base}/${id}/anonymize`, {});
+  }
+
+  async updateFinancialData(
+    id: number,
+    data: { verifiedFundingAmount?: number; verifiedTotalProjectCost?: number },
+  ): Promise<BusinessPlan> {
+    return apiClient.patch<BusinessPlan>(`${this.base}/${id}/financial`, data);
   }
 }
 
