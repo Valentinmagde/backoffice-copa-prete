@@ -300,8 +300,8 @@ export default function EvaluationFormPage({ businessPlanId }: { businessPlanId:
           setFinancialError(null);
           try {
             const payload: { verifiedFundingAmount?: number; verifiedTotalProjectCost?: number } = {};
-            const funding = parseFloat(financialEdit.verifiedFundingAmount.replace(/\s/g, ''));
-            const cost = parseFloat(financialEdit.verifiedTotalProjectCost.replace(/\s/g, ''));
+            const funding = parseFloat(financialEdit.verifiedFundingAmount.replace(/\s/g, '').replace(',', '.'));
+            const cost = parseFloat(financialEdit.verifiedTotalProjectCost.replace(/\s/g, '').replace(',', '.'));
             if (!isNaN(funding)) payload.verifiedFundingAmount = funding;
             if (!isNaN(cost)) payload.verifiedTotalProjectCost = cost;
             await businessPlanApi.updateFinancialData(businessPlanId, payload);
