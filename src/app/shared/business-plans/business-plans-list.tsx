@@ -9,8 +9,22 @@ import { useTanStackTable } from '@core/components/table/custom/use-TanStack-Tab
 import Table from '@core/components/table';
 import TablePagination from '@core/components/table/pagination';
 import { useBusinessPlans, useAnonymizeBusinessPlan } from '@/lib/api/hooks/use-business-plan';
+import { useEvaluationsForPlans } from '@/lib/api/hooks/use-evaluateurs';
+import { SCORE_CRITERIA } from '@/lib/api/types/evaluateur.types';
 import { routes } from '@/config/routes';
 import type { BusinessPlan } from '@/lib/api/endpoints/business-plan.api';
+import type { Evaluation } from '@/lib/api/types/evaluateur.types';
+
+function computeMaxCriterionGap(evaluations: Evaluation[]): number {
+  if (evaluations.length < 2) return 0;
+  let maxGap = 0;
+  for (const c of SCORE_CRITERIA) {
+    const scores = evaluations.map((e) => (e as any)[c.key as string] ?? 0);
+    const gap = Math.max(...scores) - Math.min(...scores);
+    if (gap > maxGap) maxGap = gap;
+  }
+  return maxGap;
+}
 
 const STATUS_META: Record<string, { label: string; dot: string; text: string }> = {
   DRAFT:            { label: 'Brouillon',             dot: 'bg-gray-400',   text: 'text-gray-500' },
@@ -137,6 +151,9 @@ export default function BusinessPlansList() {
   const total = data?.meta?.total ?? 0;
   const totalPages = data?.meta?.totalPages ?? Math.max(1, Math.ceil(total / pagination.pageSize));
 
+  const planIds = useMemo(() => plans.map((p) => p.id), [plans]);
+  const evaluationsMap = useEvaluationsForPlans(planIds);
+
   const columns = useMemo(
     () =>
       buildColumns(
@@ -200,6 +217,10 @@ export default function BusinessPlansList() {
           container: 'border border-muted rounded-md border-t-0',
           rowClassName: 'last:border-0',
           rowStyle: (row: any) => {
+            const planEvals = evaluationsMap[row.original?.id] ?? [];
+            const gap = computeMaxCriterionGap(planEvals);
+            if (gap >= 3) return { backgroundColor: '#fee2e2' };
+            if (gap >= 2) return { backgroundColor: '#ffedd5' };
             if (row.original?.isAnonymized) return { backgroundColor: '#eff6ff' };
             return {};
           },

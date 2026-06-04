@@ -55,6 +55,10 @@ export interface Evaluation {
     id: number;
     referenceNumber?: string;
     projectTitle?: string;
+    verifiedInvestmentSubsidy?: number | null;
+    verifiedExploitationSubsidy?: number | null;
+    verifiedFundingAmount?: number | null;
+    verifiedTotalProjectCost?: number | null;
     beneficiary?: {
       id: number;
       totalProjectCost?: number | null;

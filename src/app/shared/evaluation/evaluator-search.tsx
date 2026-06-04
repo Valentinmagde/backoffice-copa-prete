@@ -24,8 +24,10 @@ const STATUS_META: Record<string, { label: string; dot: string; text: string }> 
   REJECTED:         { label: 'Rejeté',                dot: 'bg-red-500',    text: 'text-red-600' },
 };
 
-const fmtAmount = (n?: number | null) =>
-  n != null ? `${Number(n).toLocaleString('fr-FR')} BIF` : '—';
+const fmtUSD = (n?: number | null) =>
+  n != null
+    ? `${Number(n).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`
+    : '—';
 
 const fmtDate = (d?: string | null) =>
   d
@@ -53,22 +55,32 @@ const buildPlanColumns = (onEvaluate: (id: number) => void) => [
       <span className="text-sm text-gray-600">{fmtDate(getValue())}</span>
     ),
   }),
-  planColumnHelper.accessor('beneficiary', {
-    id: 'totalProjectCost',
-    header: 'Coût total',
+  planColumnHelper.accessor('verifiedInvestmentSubsidy', {
+    id: 'verifiedInvestmentSubsidy',
+    header: 'Subv. investissement',
     cell: ({ getValue }) => (
-      <span className="whitespace-nowrap text-sm text-gray-700">
-        {fmtAmount(getValue()?.totalProjectCost)}
-      </span>
+      <span className="whitespace-nowrap text-sm text-gray-700">{fmtUSD(getValue())}</span>
     ),
   }),
-  planColumnHelper.accessor('beneficiary', {
-    id: 'requestedSubsidyAmount',
-    header: 'Subvention demandée',
+  planColumnHelper.accessor('verifiedExploitationSubsidy', {
+    id: 'verifiedExploitationSubsidy',
+    header: 'Subv. exploitation',
     cell: ({ getValue }) => (
-      <span className="whitespace-nowrap text-sm text-gray-700">
-        {fmtAmount(getValue()?.requestedSubsidyAmount)}
-      </span>
+      <span className="whitespace-nowrap text-sm text-gray-700">{fmtUSD(getValue())}</span>
+    ),
+  }),
+  planColumnHelper.accessor('verifiedFundingAmount', {
+    id: 'verifiedFundingAmount',
+    header: 'Subvention totale',
+    cell: ({ getValue }) => (
+      <span className="whitespace-nowrap text-sm text-gray-700">{fmtUSD(getValue())}</span>
+    ),
+  }),
+  planColumnHelper.accessor('verifiedTotalProjectCost', {
+    id: 'verifiedTotalProjectCost',
+    header: 'Coût total vérifié',
+    cell: ({ getValue }) => (
+      <span className="whitespace-nowrap text-sm text-gray-700">{fmtUSD(getValue())}</span>
     ),
   }),
   planColumnHelper.accessor('status', {
@@ -117,20 +129,38 @@ const buildEvalColumns = (onView: (businessPlanId: number) => void) => [
     ),
   }),
   evalColumnHelper.accessor('businessPlan', {
-    id: 'totalProjectCost',
-    header: 'Coût total',
+    id: 'verifiedInvestmentSubsidy',
+    header: 'Subv. investissement',
     cell: ({ getValue }) => (
       <span className="whitespace-nowrap text-sm text-gray-700">
-        {fmtAmount(getValue()?.beneficiary?.totalProjectCost)}
+        {fmtUSD(getValue()?.verifiedInvestmentSubsidy)}
       </span>
     ),
   }),
   evalColumnHelper.accessor('businessPlan', {
-    id: 'requestedSubsidyAmount',
-    header: 'Subvention demandée',
+    id: 'verifiedExploitationSubsidy',
+    header: 'Subv. exploitation',
     cell: ({ getValue }) => (
       <span className="whitespace-nowrap text-sm text-gray-700">
-        {fmtAmount(getValue()?.beneficiary?.requestedSubsidyAmount)}
+        {fmtUSD(getValue()?.verifiedExploitationSubsidy)}
+      </span>
+    ),
+  }),
+  evalColumnHelper.accessor('businessPlan', {
+    id: 'verifiedFundingAmount',
+    header: 'Subvention totale',
+    cell: ({ getValue }) => (
+      <span className="whitespace-nowrap text-sm text-gray-700">
+        {fmtUSD(getValue()?.verifiedFundingAmount)}
+      </span>
+    ),
+  }),
+  evalColumnHelper.accessor('businessPlan', {
+    id: 'verifiedTotalProjectCost',
+    header: 'Coût total vérifié',
+    cell: ({ getValue }) => (
+      <span className="whitespace-nowrap text-sm text-gray-700">
+        {fmtUSD(getValue()?.verifiedTotalProjectCost)}
       </span>
     ),
   }),

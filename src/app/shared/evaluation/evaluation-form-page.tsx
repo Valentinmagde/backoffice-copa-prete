@@ -270,28 +270,6 @@ export default function EvaluationFormPage({ businessPlanId }: { businessPlanId:
         )}
       </div>
 
-      {/* ── Chiffres clés ── */}
-      <div className="flex flex-wrap gap-6 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm">
-        {[
-          { label: 'Coût total', value: fmtAmount(businessPlan.beneficiary?.totalProjectCost) },
-          { label: 'Subvention demandée', value: fmtAmount(businessPlan.beneficiary?.requestedSubsidyAmount) },
-          {
-            label: 'Apport personnel',
-            value: (() => {
-              const t = businessPlan.beneficiary?.totalProjectCost;
-              const s = businessPlan.beneficiary?.requestedSubsidyAmount;
-              return t != null && s != null ? fmtAmount(t - s) : fmtAmount(businessPlan.personalContributionAmount);
-            })(),
-          },
-          ...(businessPlan.copaEdition?.name ? [{ label: 'Édition', value: businessPlan.copaEdition.name }] : []),
-        ].map(({ label, value }) => (
-          <div key={label}>
-            <p className="text-xs text-gray-400">{label}</p>
-            <p className="font-medium text-gray-800">{value}</p>
-          </div>
-        ))}
-      </div>
-
       {/* ── Données financières vérifiées ── */}
       {(() => {
         const lockedByMe = businessPlan.financialDataEvaluatorId === currentUserId;
@@ -329,14 +307,40 @@ export default function EvaluationFormPage({ businessPlanId }: { businessPlanId:
           }
         };
 
+        const total = businessPlan.verifiedFundingAmount;
+        const exp = businessPlan.verifiedExploitationSubsidy;
+        const ratio = total != null && exp != null && total > 0 ? (exp / total) * 100 : null;
+        const items = [
+          { label: 'Subv. investissement', value: fmtUSD(businessPlan.verifiedInvestmentSubsidy), className: 'text-gray-800' },
+          { label: 'Subv. exploitation',   value: fmtUSD(businessPlan.verifiedExploitationSubsidy), className: 'text-gray-800' },
+          { label: 'Subvention totale',    value: fmtUSD(businessPlan.verifiedFundingAmount), className: 'text-gray-800' },
+          { label: 'Coût total vérifié',   value: fmtUSD(businessPlan.verifiedTotalProjectCost), className: 'text-gray-800' },
+          { label: 'Ratio exploitation',   value: ratio != null ? `${ratio.toFixed(1)} %` : '—', className: ratio == null ? 'text-gray-800' : ratio > 30 ? 'text-red-600' : 'text-green-600' },
+        ];
+
         return (
-          <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
             <div className="mb-3 flex items-center justify-between">
-              <p className="text-xs font-semibold uppercase tracking-wide text-blue-500">
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                 Données financières vérifiées
               </p>
-              {lockedByOther && <span className="text-xs text-gray-400">Saisi par un autre évaluateur</span>}
-              {lockedByMe && !financialEdit && <span className="text-xs text-green-600 font-medium">Saisi par vous</span>}
+              <div className="flex items-center gap-3">
+                {lockedByOther && <span className="text-xs text-gray-400">Saisi par un autre évaluateur</span>}
+                {lockedByMe && !financialEdit && <span className="text-xs text-green-600 font-medium">Saisi par vous</span>}
+                {canEdit && !financialEdit && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setFinancialEdit({
+                      verifiedInvestmentSubsidy: businessPlan.verifiedInvestmentSubsidy?.toString() ?? '',
+                      verifiedExploitationSubsidy: businessPlan.verifiedExploitationSubsidy?.toString() ?? '',
+                      verifiedTotalProjectCost: businessPlan.verifiedTotalProjectCost?.toString() ?? '',
+                    })}
+                  >
+                    {businessPlan.financialDataEvaluatorId ? 'Modifier' : 'Saisir'}
+                  </Button>
+                )}
+              </div>
             </div>
 
             {financialEdit ? (
@@ -360,19 +364,19 @@ export default function EvaluationFormPage({ businessPlanId }: { businessPlanId:
                 {(() => {
                   const inv = parseFloat(financialEdit.verifiedInvestmentSubsidy.replace(/\s/g, '').replace(',', '.'));
                   const exp = parseFloat(financialEdit.verifiedExploitationSubsidy.replace(/\s/g, '').replace(',', '.'));
-                  const total = (!isNaN(inv) ? inv : 0) + (!isNaN(exp) ? exp : 0);
-                  const ratio = total > 0 && !isNaN(exp) ? (exp / total) * 100 : null;
+                  const t = (!isNaN(inv) ? inv : 0) + (!isNaN(exp) ? exp : 0);
+                  const r = t > 0 && !isNaN(exp) ? (exp / t) * 100 : null;
                   return (inv > 0 || exp > 0) ? (
                     <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
                       <div className="flex items-center justify-between">
                         <span className="text-gray-500">Subvention totale</span>
-                        <span className="font-semibold text-gray-800">{fmtUSD(total)}</span>
+                        <span className="font-semibold text-gray-800">{fmtUSD(t)}</span>
                       </div>
-                      {ratio !== null && (
+                      {r !== null && (
                         <div className="mt-1 flex items-center justify-between">
                           <span className="text-gray-500">Ratio exploitation</span>
-                          <span className={`font-semibold ${ratio > 30 ? 'text-red-600' : 'text-green-600'}`}>
-                            {ratio.toFixed(1)} %
+                          <span className={`font-semibold ${r > 30 ? 'text-red-600' : 'text-green-600'}`}>
+                            {r.toFixed(1)} %
                           </span>
                         </div>
                       )}
@@ -394,63 +398,13 @@ export default function EvaluationFormPage({ businessPlanId }: { businessPlanId:
                 </div>
               </div>
             ) : (
-              <>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-xs text-gray-400">Subvention en investissement</p>
-                    <p className="font-medium text-gray-800">
-                      {businessPlan.verifiedInvestmentSubsidy != null ? fmtUSD(businessPlan.verifiedInvestmentSubsidy) : '—'}
-                    </p>
+              <div className="flex flex-wrap justify-between text-sm">
+                {items.map(({ label, value, className }) => (
+                  <div key={label}>
+                    <p className="text-xs text-gray-400">{label}</p>
+                    <p className={`font-semibold ${className}`}>{value}</p>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-400">Subvention pour exploitation</p>
-                    <p className="font-medium text-gray-800">
-                      {businessPlan.verifiedExploitationSubsidy != null ? fmtUSD(businessPlan.verifiedExploitationSubsidy) : '—'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400">Subvention totale (demandée)</p>
-                    <p className="font-medium text-gray-800">
-                      {businessPlan.verifiedFundingAmount != null ? fmtUSD(businessPlan.verifiedFundingAmount) : '—'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400">Ratio subvention exploitation</p>
-                    {(() => {
-                      const total = businessPlan.verifiedFundingAmount;
-                      const exp = businessPlan.verifiedExploitationSubsidy;
-                      if (total == null || exp == null || total === 0) return <p className="font-medium text-gray-800">—</p>;
-                      const ratio = (exp / total) * 100;
-                      return (
-                        <p className={`font-semibold ${ratio > 30 ? 'text-red-600' : 'text-green-600'}`}>
-                          {ratio.toFixed(1)} %
-                        </p>
-                      );
-                    })()}
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400">Coût total du projet</p>
-                    <p className="font-medium text-gray-800">
-                      {businessPlan.verifiedTotalProjectCost != null ? fmtUSD(businessPlan.verifiedTotalProjectCost) : '—'}
-                    </p>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {canEdit && !financialEdit && (
-              <div className="mt-3 flex justify-end">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setFinancialEdit({
-                    verifiedInvestmentSubsidy: businessPlan.verifiedInvestmentSubsidy?.toString() ?? '',
-                    verifiedExploitationSubsidy: businessPlan.verifiedExploitationSubsidy?.toString() ?? '',
-                    verifiedTotalProjectCost: businessPlan.verifiedTotalProjectCost?.toString() ?? '',
-                  })}
-                >
-                  {businessPlan.financialDataEvaluatorId ? 'Modifier' : 'Saisir'}
-                </Button>
+                ))}
               </div>
             )}
           </div>

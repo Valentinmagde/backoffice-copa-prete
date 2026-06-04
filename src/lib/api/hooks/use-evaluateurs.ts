@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useQueries } from '@tanstack/react-query';
 import { evaluateurApi } from '../endpoints/evaluateur.api';
-import type { EvaluationInput } from '../types/evaluateur.types';
+import type { EvaluationInput, Evaluation } from '../types/evaluateur.types';
 import toast from 'react-hot-toast';
 
 
@@ -59,6 +59,16 @@ export function useEvaluationGaps(businessPlanId: number | null | undefined) {
 
 export function useEvaluationStats() {
   return useQuery({ queryKey: keys.stats(), queryFn: () => evaluateurApi.getStats() });
+}
+
+export function useEvaluationsForPlans(planIds: number[]): Record<number, Evaluation[]> {
+  const results = useQueries({
+    queries: planIds.map((id) => ({
+      queryKey: keys.evaluationsByBusinessPlan(id),
+      queryFn: () => evaluateurApi.getEvaluationsByBusinessPlan(id),
+    })),
+  });
+  return Object.fromEntries(planIds.map((id, i) => [id, results[i]?.data ?? []]));
 }
 
 export function useCreateAssignment() {

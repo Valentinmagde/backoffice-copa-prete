@@ -328,10 +328,11 @@ export default function EvaluateBusinessPlan({ beneficiaryId, beneficiaryName }:
 
         <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
           {[
-            { label: 'Secteur',         value: businessPlan.businessSector?.name },
-            { label: 'Financement demandé', value: fmtAmount(businessPlan.requestedFundingAmount) },
-            { label: 'Apport personnel', value: fmtAmount(businessPlan.personalContributionAmount) },
-            { label: 'Emplois prévus',  value: businessPlan.expectedJobsCount ?? '—' },
+            { label: 'Secteur',              value: businessPlan.businessSector?.name ?? '—' },
+            { label: 'Subv. investissement', value: fmtUSD(businessPlan.verifiedInvestmentSubsidy) },
+            { label: 'Subv. exploitation',   value: fmtUSD(businessPlan.verifiedExploitationSubsidy) },
+            { label: 'Subvention totale',    value: fmtUSD(businessPlan.verifiedFundingAmount) },
+            { label: 'Coût total vérifié',   value: fmtUSD(businessPlan.verifiedTotalProjectCost) },
           ].map(({ label, value }) => (
             <div key={label}>
               <p className="text-xs text-gray-400">{label}</p>

@@ -11,6 +11,9 @@ const fmtDate = (d?: string | null) =>
 const fmtAmount = (n?: number | null) =>
   n != null ? `${Number(n).toLocaleString('fr-FR')} BIF` : null;
 
+const fmtUSD = (n?: number | null) =>
+  n != null ? `${Number(n).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD` : null;
+
 const sectorMap = (sector: string) => {
   switch (sector) {
     case 'agriculture': return 'Agri-business';
@@ -96,6 +99,39 @@ export default function BusinessPlanDetail({ businessPlanId }: { businessPlanId:
           <InfoRow label="Soumis le" value={fmtDate(businessPlan.submittedAt)} />
         </div>
       </FormGroup>
+
+      {/* ── Données financières vérifiées ── */}
+      {(businessPlan.verifiedInvestmentSubsidy != null ||
+        businessPlan.verifiedExploitationSubsidy != null ||
+        businessPlan.verifiedFundingAmount != null ||
+        businessPlan.verifiedTotalProjectCost != null) && (
+      <FormGroup
+        title="Données financières vérifiées"
+        description="Montants validés par l'évaluateur désigné"
+        className="@3xl:grid-cols-12"
+      >
+        <div className="rounded-lg border border-muted bg-white p-6 @3xl:col-span-8">
+          <InfoRow label="Subvention en investissement" value={fmtUSD(businessPlan.verifiedInvestmentSubsidy)} />
+          <InfoRow label="Subvention pour exploitation" value={fmtUSD(businessPlan.verifiedExploitationSubsidy)} />
+          <InfoRow label="Subvention totale" value={fmtUSD(businessPlan.verifiedFundingAmount)} />
+          <InfoRow label="Coût total du projet" value={fmtUSD(businessPlan.verifiedTotalProjectCost)} />
+          {(() => {
+            const total = businessPlan.verifiedFundingAmount;
+            const exp = businessPlan.verifiedExploitationSubsidy;
+            if (total == null || exp == null || total === 0) return null;
+            const ratio = (exp / total) * 100;
+            return (
+              <div className="flex flex-col gap-1 py-3 border-b border-dashed border-gray-200 last:border-0">
+                <Text className="text-sm font-medium tracking-wider text-gray-400">Ratio exploitation</Text>
+                <Text className={`text-sm font-semibold ${ratio > 30 ? 'text-red-600' : 'text-green-600'}`}>
+                  {ratio.toFixed(1)} %
+                </Text>
+              </div>
+            );
+          })()}
+        </div>
+      </FormGroup>
+      )}
 
       {/* ── Description ── */}
       {businessPlan.projectDescription && (
