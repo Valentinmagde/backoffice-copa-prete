@@ -284,7 +284,8 @@ export default function EvaluateBusinessPlan({ beneficiaryId, beneficiaryName }:
   const [evalModal, setEvalModal] = useState<EvaluationAssignment | null>(null);
 
   const [financialEdit, setFinancialEdit] = useState<{
-    verifiedFundingAmount: string;
+    verifiedInvestmentSubsidy: string;
+    verifiedExploitationSubsidy: string;
     verifiedTotalProjectCost: string;
   } | null>(null);
   const [financialSaving, setFinancialSaving] = useState(false);
@@ -371,13 +372,24 @@ export default function EvaluateBusinessPlan({ beneficiaryId, beneficiaryName }:
           setFinancialSaving(true);
           setFinancialError(null);
           try {
-            const payload: { verifiedFundingAmount?: number; verifiedTotalProjectCost?: number } = {};
-            const funding = parseFloat(financialEdit.verifiedFundingAmount.replace(/\s/g, '').replace(',', '.'));
+            const payload: {
+              verifiedInvestmentSubsidy?: number;
+              verifiedExploitationSubsidy?: number;
+              verifiedFundingAmount?: number;
+              verifiedTotalProjectCost?: number;
+            } = {};
+            const investment = parseFloat(financialEdit.verifiedInvestmentSubsidy.replace(/\s/g, '').replace(',', '.'));
+            const exploitation = parseFloat(financialEdit.verifiedExploitationSubsidy.replace(/\s/g, '').replace(',', '.'));
             const cost = parseFloat(financialEdit.verifiedTotalProjectCost.replace(/\s/g, '').replace(',', '.'));
-            if (!isNaN(funding)) payload.verifiedFundingAmount = funding;
+            if (!isNaN(investment)) payload.verifiedInvestmentSubsidy = investment;
+            if (!isNaN(exploitation)) payload.verifiedExploitationSubsidy = exploitation;
+            if (!isNaN(investment) && !isNaN(exploitation)) payload.verifiedFundingAmount = investment + exploitation;
             if (!isNaN(cost)) payload.verifiedTotalProjectCost = cost;
-            await businessPlanApi.updateFinancialData(businessPlan.id, payload);
-            await queryClient.invalidateQueries({ queryKey: ['business-plan', 'beneficiary', beneficiaryId] });
+            const updated = await businessPlanApi.updateFinancialData(businessPlan.id, payload);
+            queryClient.setQueryData(['business-plan', 'beneficiary', beneficiaryId], (old: any) => ({
+              ...(old ?? {}),
+              ...(updated ?? {}),
+            }));
             setFinancialEdit(null);
           } catch {
             setFinancialError('Erreur lors de la sauvegarde. Veuillez réessayer.');
@@ -403,13 +415,43 @@ export default function EvaluateBusinessPlan({ beneficiaryId, beneficiaryName }:
             {financialEdit ? (
               <div className="space-y-3">
                 <Input
-                  label="Subvention demandée (USD)"
-                  value={financialEdit.verifiedFundingAmount}
-                  onChange={(e) => setFinancialEdit({ ...financialEdit, verifiedFundingAmount: e.target.value })}
-                  placeholder="Ex : 5000000"
+                  label="Subvention en investissement (USD)"
+                  value={financialEdit.verifiedInvestmentSubsidy}
+                  onChange={(e) => setFinancialEdit({ ...financialEdit, verifiedInvestmentSubsidy: e.target.value })}
+                  placeholder="Ex : 3000000"
                   type="number"
                   min={0}
                 />
+                <Input
+                  label="Subvention pour exploitation (USD)"
+                  value={financialEdit.verifiedExploitationSubsidy}
+                  onChange={(e) => setFinancialEdit({ ...financialEdit, verifiedExploitationSubsidy: e.target.value })}
+                  placeholder="Ex : 2000000"
+                  type="number"
+                  min={0}
+                />
+                {(() => {
+                  const inv = parseFloat(financialEdit.verifiedInvestmentSubsidy.replace(/\s/g, '').replace(',', '.'));
+                  const exp = parseFloat(financialEdit.verifiedExploitationSubsidy.replace(/\s/g, '').replace(',', '.'));
+                  const total = (!isNaN(inv) ? inv : 0) + (!isNaN(exp) ? exp : 0);
+                  const ratio = total > 0 && !isNaN(exp) ? (exp / total) * 100 : null;
+                  return (inv > 0 || exp > 0) ? (
+                    <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">Subvention totale</span>
+                        <span className="font-semibold text-gray-800">{fmtUSD(total)}</span>
+                      </div>
+                      {ratio !== null && (
+                        <div className="mt-1 flex items-center justify-between">
+                          <span className="text-gray-500">Ratio exploitation</span>
+                          <span className={`font-semibold ${ratio > 30 ? 'text-red-600' : 'text-green-600'}`}>
+                            {ratio.toFixed(1)} %
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ) : null;
+                })()}
                 <Input
                   label="Coût total du projet (USD)"
                   value={financialEdit.verifiedTotalProjectCost}
@@ -433,10 +475,36 @@ export default function EvaluateBusinessPlan({ beneficiaryId, beneficiaryName }:
             ) : (
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-xs text-gray-400">Subvention demandée</p>
+                  <p className="text-xs text-gray-400">Subvention en investissement</p>
+                  <p className="font-medium text-gray-800">
+                    {businessPlan.verifiedInvestmentSubsidy != null ? fmtUSD(businessPlan.verifiedInvestmentSubsidy) : '—'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Subvention pour exploitation</p>
+                  <p className="font-medium text-gray-800">
+                    {businessPlan.verifiedExploitationSubsidy != null ? fmtUSD(businessPlan.verifiedExploitationSubsidy) : '—'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Subvention totale (demandée)</p>
                   <p className="font-medium text-gray-800">
                     {businessPlan.verifiedFundingAmount != null ? fmtUSD(businessPlan.verifiedFundingAmount) : '—'}
                   </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Ratio subvention exploitation</p>
+                  {(() => {
+                    const total = businessPlan.verifiedFundingAmount;
+                    const exp = businessPlan.verifiedExploitationSubsidy;
+                    if (total == null || exp == null || total === 0) return <p className="font-medium text-gray-800">—</p>;
+                    const ratio = (exp / total) * 100;
+                    return (
+                      <p className={`font-semibold ${ratio > 30 ? 'text-red-600' : 'text-green-600'}`}>
+                        {ratio.toFixed(1)} %
+                      </p>
+                    );
+                  })()}
                 </div>
                 <div>
                   <p className="text-xs text-gray-400">Coût total du projet</p>
@@ -453,7 +521,8 @@ export default function EvaluateBusinessPlan({ beneficiaryId, beneficiaryName }:
                   variant="outline"
                   size="sm"
                   onClick={() => setFinancialEdit({
-                    verifiedFundingAmount: businessPlan.verifiedFundingAmount?.toString() ?? '',
+                    verifiedInvestmentSubsidy: businessPlan.verifiedInvestmentSubsidy?.toString() ?? '',
+                    verifiedExploitationSubsidy: businessPlan.verifiedExploitationSubsidy?.toString() ?? '',
                     verifiedTotalProjectCost: businessPlan.verifiedTotalProjectCost?.toString() ?? '',
                   })}
                 >
