@@ -115,6 +115,14 @@ export default function BusinessPlanDetail({ businessPlanId }: { businessPlanId:
           <InfoRow label="Subvention pour exploitation" value={fmtUSD(businessPlan.verifiedExploitationSubsidy)} />
           <InfoRow label="Subvention totale" value={fmtUSD(businessPlan.verifiedFundingAmount)} />
           <InfoRow label="Coût total du projet" value={fmtUSD(businessPlan.verifiedTotalProjectCost)} />
+          <InfoRow
+            label="Apport personnel"
+            value={
+              businessPlan.verifiedTotalProjectCost != null && businessPlan.verifiedFundingAmount != null
+                ? fmtUSD(businessPlan.verifiedTotalProjectCost - businessPlan.verifiedFundingAmount)
+                : null
+            }
+          />
           {(() => {
             const total = businessPlan.verifiedFundingAmount;
             const exp = businessPlan.verifiedExploitationSubsidy;
