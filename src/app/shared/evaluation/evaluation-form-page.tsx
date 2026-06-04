@@ -309,12 +309,15 @@ export default function EvaluationFormPage({ businessPlanId }: { businessPlanId:
 
         const total = businessPlan.verifiedFundingAmount;
         const exp = businessPlan.verifiedExploitationSubsidy;
+        const cost = businessPlan.verifiedTotalProjectCost;
         const ratio = total != null && exp != null && total > 0 ? (exp / total) * 100 : null;
+        const apport = cost != null && total != null ? cost - total : null;
         const items = [
           { label: 'Subv. investissement', value: fmtUSD(businessPlan.verifiedInvestmentSubsidy), className: 'text-gray-800' },
           { label: 'Subv. exploitation',   value: fmtUSD(businessPlan.verifiedExploitationSubsidy), className: 'text-gray-800' },
-          { label: 'Subvention totale',    value: fmtUSD(businessPlan.verifiedFundingAmount), className: 'text-gray-800' },
-          { label: 'Coût total vérifié',   value: fmtUSD(businessPlan.verifiedTotalProjectCost), className: 'text-gray-800' },
+          { label: 'Subvention totale',    value: fmtUSD(total), className: 'text-gray-800' },
+          { label: 'Coût total vérifié',   value: fmtUSD(cost), className: 'text-gray-800' },
+          { label: 'Apport personnel',     value: fmtUSD(apport), className: 'text-gray-800' },
           { label: 'Ratio exploitation',   value: ratio != null ? `${ratio.toFixed(1)} %` : '—', className: ratio == null ? 'text-gray-800' : ratio > 30 ? 'text-red-600' : 'text-green-600' },
         ];
 
