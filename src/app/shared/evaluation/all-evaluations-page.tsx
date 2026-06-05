@@ -73,7 +73,7 @@ function buildRows(evaluations: Evaluation[]): PlanRow[] {
       referenceNumber: bp?.referenceNumber ?? `#${id}`,
       beneficiary: u ? `${u.firstName} ${u.lastName}` : '—',
       companyName: bp?.beneficiary?.company?.companyName ?? bp?.projectTitle ?? '—',
-      gender: bp?.beneficiary?.user?.gender?.label ?? '—',
+      gender: bp?.beneficiary?.user?.gender?.code === 'M' ? 'Masculin' : bp?.beneficiary?.user?.gender?.code === 'F' ? 'Féminin' : '—',
       category: bp?.beneficiary?.category === 'REFUGEE' ? 'Réfugié(e)' : bp?.beneficiary?.category === 'BURUNDIAN' ? 'Burundais(e)' : bp?.beneficiary?.category === 'OTHER' ? 'Autre' : '—',
       plannedWomen: bp?.beneficiary?.plannedEmployeesFemale ?? null,
       plannedMen: bp?.beneficiary?.plannedEmployeesMale ?? null,
