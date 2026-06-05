@@ -64,7 +64,10 @@ export interface Evaluation {
       id: number;
       totalProjectCost?: number | null;
       requestedSubsidyAmount?: number | null;
-      user?: { firstName: string; lastName: string };
+      category?: string;
+      plannedEmployeesFemale?: number;
+      plannedEmployeesMale?: number;
+      user?: { firstName: string; lastName: string; gender?: { code: string; label: string } };
       company?: { companyName: string };
     };
   };

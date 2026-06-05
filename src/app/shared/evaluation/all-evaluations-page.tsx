@@ -41,6 +41,10 @@ type PlanRow = {
   referenceNumber: string;
   beneficiary: string;
   companyName: string;
+  gender: string;
+  category: string;
+  plannedWomen: number | null;
+  plannedMen: number | null;
   edition: string;
   evaluations: Evaluation[];
   avgTotal: number | null;
@@ -69,6 +73,10 @@ function buildRows(evaluations: Evaluation[]): PlanRow[] {
       referenceNumber: bp?.referenceNumber ?? `#${id}`,
       beneficiary: u ? `${u.firstName} ${u.lastName}` : '—',
       companyName: bp?.beneficiary?.company?.companyName ?? bp?.projectTitle ?? '—',
+      gender: bp?.beneficiary?.user?.gender?.label ?? '—',
+      category: bp?.beneficiary?.category === 'REFUGEE' ? 'Réfugié(e)' : bp?.beneficiary?.category === 'BURUNDIAN' ? 'Burundais(e)' : bp?.beneficiary?.category === 'OTHER' ? 'Autre' : '—',
+      plannedWomen: bp?.beneficiary?.plannedEmployeesFemale ?? null,
+      plannedMen: bp?.beneficiary?.plannedEmployeesMale ?? null,
       edition: bp?.copaEdition?.name ?? '—',
       evaluations: slots,
       avgTotal,
@@ -165,6 +173,10 @@ function exportExcel(rows: PlanRow[]) {
       'Référence': row.referenceNumber,
       'Représentant': row.beneficiary,
       "Nom de l'entreprise": row.companyName,
+      'Sexe': row.gender,
+      'Statut': row.category,
+      'Nb. femmes prévues': row.plannedWomen ?? '',
+      'Nb. hommes prévus': row.plannedMen ?? '',
       ...evaluatorCols,
       'Moyenne /160': row.avgTotal != null ? +row.avgTotal.toFixed(2) : '',
       '% moyen': row.avgTotal != null ? +((row.avgTotal / TOTAL_MAX) * 100).toFixed(2) : '',
