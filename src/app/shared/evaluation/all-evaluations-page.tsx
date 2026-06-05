@@ -46,7 +46,7 @@ type PlanRow = {
   age: number | null;
   province: string;
   commune: string;
-  colline: string;
+  rue: string;
   quartier: string;
   plannedWomen: number | null;
   plannedMen: number | null;
@@ -88,7 +88,7 @@ function buildRows(evaluations: Evaluation[]): PlanRow[] {
       })(),
       province: bp?.beneficiary?.user?.primaryAddress?.commune?.province?.name ?? '—',
       commune:  bp?.beneficiary?.user?.primaryAddress?.commune?.name ?? '—',
-      colline:  bp?.beneficiary?.user?.primaryAddress?.hill ?? '—',
+      rue:      bp?.beneficiary?.user?.primaryAddress?.street ?? '—',
       quartier: bp?.beneficiary?.user?.primaryAddress?.neighborhood ?? '—',
       plannedWomen: bp?.beneficiary?.plannedEmployeesFemale ?? null,
       plannedMen: bp?.beneficiary?.plannedEmployeesMale ?? null,
@@ -193,7 +193,7 @@ function exportExcel(rows: PlanRow[]) {
       'Âge': row.age ?? '',
       'Province': row.province,
       'Commune': row.commune,
-      'Colline': row.colline,
+      'Rue': row.rue,
       'Quartier': row.quartier,
       'Nb. femmes prévues': row.plannedWomen ?? '',
       'Nb. hommes prévus': row.plannedMen ?? '',

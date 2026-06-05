@@ -73,7 +73,7 @@ export interface Evaluation {
         birthDate?: string;
         gender?: { code: string; label: string };
         primaryAddress?: {
-          hill?: string | null;
+          street?: string | null;
           neighborhood?: string | null;
           commune?: { name?: string; province?: { name?: string } } | null;
         };
