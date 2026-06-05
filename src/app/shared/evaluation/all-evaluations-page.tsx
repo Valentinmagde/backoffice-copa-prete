@@ -68,7 +68,7 @@ function buildRows(evaluations: Evaluation[]): PlanRow[] {
       businessPlanId: id,
       referenceNumber: bp?.referenceNumber ?? `#${id}`,
       beneficiary: u ? `${u.firstName} ${u.lastName}` : '—',
-      companyName: bp?.beneficiary?.company?.companyName ?? '—',
+      companyName: bp?.beneficiary?.company?.companyName ?? bp?.projectTitle ?? '—',
       edition: bp?.copaEdition?.name ?? '—',
       evaluations: slots,
       avgTotal,
