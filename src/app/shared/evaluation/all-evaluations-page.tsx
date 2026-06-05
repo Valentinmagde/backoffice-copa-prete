@@ -43,6 +43,11 @@ type PlanRow = {
   companyName: string;
   gender: string;
   category: string;
+  age: number | null;
+  province: string;
+  commune: string;
+  colline: string;
+  quartier: string;
   plannedWomen: number | null;
   plannedMen: number | null;
   edition: string;
@@ -75,6 +80,16 @@ function buildRows(evaluations: Evaluation[]): PlanRow[] {
       companyName: bp?.beneficiary?.company?.companyName ?? bp?.projectTitle ?? '—',
       gender: bp?.beneficiary?.user?.gender?.code === 'M' ? 'Masculin' : bp?.beneficiary?.user?.gender?.code === 'F' ? 'Féminin' : '—',
       category: bp?.beneficiary?.category === 'REFUGEE' ? 'Réfugié(e)' : bp?.beneficiary?.category === 'BURUNDIAN' ? 'Burundais(e)' : bp?.beneficiary?.category === 'OTHER' ? 'Autre' : '—',
+      age: (() => {
+        const bd = bp?.beneficiary?.user?.birthDate;
+        if (!bd) return null;
+        const diff = Date.now() - new Date(bd).getTime();
+        return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+      })(),
+      province: bp?.beneficiary?.user?.primaryAddress?.commune?.province?.name ?? '—',
+      commune:  bp?.beneficiary?.user?.primaryAddress?.commune?.name ?? '—',
+      colline:  bp?.beneficiary?.user?.primaryAddress?.hill ?? '—',
+      quartier: bp?.beneficiary?.user?.primaryAddress?.neighborhood ?? '—',
       plannedWomen: bp?.beneficiary?.plannedEmployeesFemale ?? null,
       plannedMen: bp?.beneficiary?.plannedEmployeesMale ?? null,
       edition: bp?.copaEdition?.name ?? '—',
@@ -175,6 +190,11 @@ function exportExcel(rows: PlanRow[]) {
       "Nom de l'entreprise": row.companyName,
       'Sexe': row.gender,
       'Statut': row.category,
+      'Âge': row.age ?? '',
+      'Province': row.province,
+      'Commune': row.commune,
+      'Colline': row.colline,
+      'Quartier': row.quartier,
       'Nb. femmes prévues': row.plannedWomen ?? '',
       'Nb. hommes prévus': row.plannedMen ?? '',
       ...evaluatorCols,

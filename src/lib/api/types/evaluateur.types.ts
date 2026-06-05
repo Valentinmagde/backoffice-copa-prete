@@ -67,7 +67,17 @@ export interface Evaluation {
       category?: string;
       plannedEmployeesFemale?: number;
       plannedEmployeesMale?: number;
-      user?: { firstName: string; lastName: string; gender?: { code: string; label: string } };
+      user?: {
+        firstName: string;
+        lastName: string;
+        birthDate?: string;
+        gender?: { code: string; label: string };
+        primaryAddress?: {
+          hill?: string | null;
+          neighborhood?: string | null;
+          commune?: { name?: string; province?: { name?: string } } | null;
+        };
+      };
       company?: { companyName: string };
     };
   };
