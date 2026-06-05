@@ -40,6 +40,7 @@ type PlanRow = {
   businessPlanId: number;
   referenceNumber: string;
   beneficiary: string;
+  companyName: string;
   edition: string;
   evaluations: Evaluation[];
   avgTotal: number | null;
@@ -67,6 +68,7 @@ function buildRows(evaluations: Evaluation[]): PlanRow[] {
       businessPlanId: id,
       referenceNumber: bp?.referenceNumber ?? `#${id}`,
       beneficiary: u ? `${u.firstName} ${u.lastName}` : '—',
+      companyName: bp?.beneficiary?.company?.companyName ?? '—',
       edition: bp?.copaEdition?.name ?? '—',
       evaluations: slots,
       avgTotal,
@@ -162,6 +164,7 @@ function exportExcel(rows: PlanRow[]) {
     return {
       'Référence': row.referenceNumber,
       'Représentant': row.beneficiary,
+      "Nom de l'entreprise": row.companyName,
       ...evaluatorCols,
       'Moyenne /160': row.avgTotal != null ? +row.avgTotal.toFixed(2) : '',
       '% moyen': row.avgTotal != null ? +((row.avgTotal / TOTAL_MAX) * 100).toFixed(2) : '',

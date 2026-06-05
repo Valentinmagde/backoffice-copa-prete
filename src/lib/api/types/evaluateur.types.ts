@@ -65,6 +65,7 @@ export interface Evaluation {
       totalProjectCost?: number | null;
       requestedSubsidyAmount?: number | null;
       user?: { firstName: string; lastName: string };
+      company?: { companyName: string };
     };
   };
 }
