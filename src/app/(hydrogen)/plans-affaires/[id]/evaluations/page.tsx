@@ -48,11 +48,11 @@ function EvaluationsGrid({ evaluations }: { evaluations: Evaluation[] }) {
 
   const sections = Array.from(new Set(CRITERIA.map((c) => c.section)));
 
-  const evalTotals = evaluations.map((e) =>
-    CRITERIA.reduce((sum, c) => sum + ((e as any)[c.key as string] ?? 0) * c.coefficient, 0),
-  );
-  const avgTotal = evalTotals.length > 0
-    ? evalTotals.reduce((s, t) => s + t, 0) / evalTotals.length
+  const slotTotals = slots
+    .filter((ev): ev is Evaluation => ev !== null)
+    .map((e) => CRITERIA.reduce((sum, c) => sum + ((e as any)[c.key as string] ?? 0) * c.coefficient, 0));
+  const avgTotal = slotTotals.length > 0
+    ? slotTotals.reduce((s, t) => s + t, 0) / slotTotals.length
     : null;
 
   return (
