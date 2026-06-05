@@ -179,7 +179,9 @@ function exportExcel(rows: PlanRow[]) {
   const ws = XLSX.utils.json_to_sheet(data);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Notes');
-  XLSX.writeFile(wb, 'toutes-les-notes.xlsx');
+  const now = new Date();
+  const stamp = now.toISOString().slice(0, 16).replace('T', '_').replace(':', 'h').replace(':', '');
+  XLSX.writeFile(wb, `toutes-les-notes_${stamp}.xlsx`);
 }
 
 // ── Composant ────────────────────────────────────────────────────────────────
