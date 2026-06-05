@@ -9,6 +9,7 @@ import {
   PiFolderLockDuotone,
   PiHouseLineDuotone,
   PiListChecksDuotone,
+  PiTableDuotone,
   PiUserCircleDuotone,
   PiWarningDuotone,
 } from 'react-icons/pi';
@@ -74,6 +75,12 @@ export const menuItems: MenuItem[] = [
     href: routes.evaluation.search,
     icon: <PiListChecksDuotone />,
     allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'EVALUATOR'],
+  },
+  {
+    name: 'Toutes les notes',
+    href: routes.evaluation.all,
+    icon: <PiTableDuotone />,
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER'],
   },
   {
     name: 'Cohortes',

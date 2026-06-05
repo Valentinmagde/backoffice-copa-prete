@@ -148,7 +148,7 @@ function EvaluationsGrid({ evaluations }: { evaluations: Evaluation[] }) {
                       <td className="px-3 py-4 text-center">
                         {avg !== null ? (
                           <span className={`inline-block rounded px-2 py-0.5 text-xs font-semibold ${scoreClass(Math.round(avg))}`}>
-                            {avg.toFixed(1)}
+                            {avg.toFixed(2)}
                           </span>
                         ) : (
                           <span className="text-xs text-gray-300">—</span>
@@ -161,7 +161,7 @@ function EvaluationsGrid({ evaluations }: { evaluations: Evaluation[] }) {
 
                       <td className="px-3 py-4 text-center text-xs text-gray-600">
                         {weighted !== null ? (
-                          <>{weighted.toFixed(1)}<span className="text-gray-400">/{maxW}</span></>
+                          <>{weighted.toFixed(2)}<span className="text-gray-400">/{maxW}</span></>
                         ) : '—'}
                       </td>
 
@@ -216,7 +216,7 @@ function EvaluationsGrid({ evaluations }: { evaluations: Evaluation[] }) {
             <td className="px-3 py-4 text-center">
               {avgTotal !== null ? (
                 <span className={`text-sm font-bold ${totalClass((avgTotal / TOTAL_MAX) * 100)}`}>
-                  {avgTotal.toFixed(1)}
+                  {avgTotal.toFixed(2)}
                 </span>
               ) : (
                 <span className="text-xs text-gray-300">—</span>
@@ -228,7 +228,7 @@ function EvaluationsGrid({ evaluations }: { evaluations: Evaluation[] }) {
             <td className="px-3 py-4 text-center">
               {avgTotal !== null ? (
                 <span className={`text-sm font-bold ${totalClass((avgTotal / TOTAL_MAX) * 100)}`}>
-                  {avgTotal.toFixed(1)}<span className="text-xs font-normal text-gray-400">/{TOTAL_MAX}</span>
+                  {avgTotal.toFixed(2)}<span className="text-xs font-normal text-gray-400">/{TOTAL_MAX}</span>
                 </span>
               ) : (
                 <span className="text-xs text-gray-300">—</span>
@@ -291,7 +291,7 @@ function EvaluationsContent({ businessPlanId }: { businessPlanId: number }) {
         .map((s, i) => (slots[i] !== null && s !== '' ? Number(s) : null))
         .filter((s): s is number => s !== null);
       const avg = valid.length > 0 ? valid.reduce((a, b) => a + b, 0) / valid.length : null;
-      const weighted = avg !== null ? (avg * c.coefficient).toFixed(1) : '';
+      const weighted = avg !== null ? (avg * c.coefficient).toFixed(2) : '';
       const comments = slots
         .map((ev, i) => {
           const text = ev?.criteriaComments?.[c.key as string];
@@ -306,11 +306,11 @@ function EvaluationsContent({ businessPlanId }: { businessPlanId: number }) {
       ].map(esc).join(',');
     });
 
-    const evalTotals = evaluations.map((e) =>
-      CRITERIA.reduce((sum, c) => sum + ((e as any)[c.key as string] ?? 0) * c.coefficient, 0),
-    );
-    const avgTotal = evalTotals.length > 0
-      ? evalTotals.reduce((s, t) => s + t, 0) / evalTotals.length : null;
+    const slotTotals = slots
+      .filter((ev): ev is Evaluation => ev !== null)
+      .map((e) => CRITERIA.reduce((sum, c) => sum + ((e as any)[c.key as string] ?? 0) * c.coefficient, 0));
+    const avgTotal = slotTotals.length > 0
+      ? slotTotals.reduce((s, t) => s + t, 0) / slotTotals.length : null;
     const totalRow = [
       '', `Total /${TOTAL_MAX}`, '', '',
       ...slots.map((ev) =>

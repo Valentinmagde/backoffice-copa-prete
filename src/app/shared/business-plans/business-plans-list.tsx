@@ -217,7 +217,7 @@ export default function BusinessPlansList() {
           container: 'border border-muted rounded-md border-t-0',
           rowClassName: 'last:border-0',
           rowStyle: (row: any) => {
-            const planEvals = evaluationsMap[row.original?.id] ?? [];
+            const planEvals = (evaluationsMap[row.original?.id] ?? []).slice(0, 3);
             const gap = computeMaxCriterionGap(planEvals);
             if (gap >= 3) return { backgroundColor: '#fee2e2' };
             if (gap >= 2) return { backgroundColor: '#ffedd5' };

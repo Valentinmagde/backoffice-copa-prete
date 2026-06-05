@@ -54,6 +54,11 @@ class EvaluateurApi {
     return apiClient.get<Evaluation[]>(`${this.base}/my/evaluations`, { skipCache: true });
   }
 
+  async getAllEvaluations(editionId?: number): Promise<Evaluation[]> {
+    const params = editionId ? `?editionId=${editionId}` : '';
+    return apiClient.get<Evaluation[]>(`${this.base}${params}`, { skipCache: true });
+  }
+
   async getStats(): Promise<any> {
     return apiClient.get(`${this.base}/stats`);
   }

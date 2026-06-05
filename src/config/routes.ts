@@ -52,6 +52,7 @@ export const routes = {
   evaluation: {
     search: '/evaluation',
     evaluate: (id: number | string) => `/evaluation/${id}`,
+    all: '/evaluations',
   },
   cohorts: {
     list: '/cohorts',

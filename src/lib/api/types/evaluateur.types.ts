@@ -59,6 +59,7 @@ export interface Evaluation {
     verifiedExploitationSubsidy?: number | null;
     verifiedFundingAmount?: number | null;
     verifiedTotalProjectCost?: number | null;
+    copaEdition?: { id: number; name: string };
     beneficiary?: {
       id: number;
       totalProjectCost?: number | null;
