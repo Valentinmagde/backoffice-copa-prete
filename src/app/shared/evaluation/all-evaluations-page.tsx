@@ -182,6 +182,9 @@ function exportExcel(rows: PlanRow[]) {
       '% moyen': row.avgTotal != null ? +((row.avgTotal / TOTAL_MAX) * 100).toFixed(2) : '',
       'Subv. investissement (USD)': row.verifiedInvestmentSubsidy ?? '',
       'Subv. exploitation (USD)': row.verifiedExploitationSubsidy ?? '',
+      'Ratio exploitation (%)': row.verifiedExploitationSubsidy != null && row.verifiedFundingAmount != null && row.verifiedFundingAmount > 0
+        ? +((row.verifiedExploitationSubsidy / row.verifiedFundingAmount) * 100).toFixed(1)
+        : '',
       'Subvention totale (USD)': funding ?? '',
       'Coût total vérifié (USD)': cost ?? '',
       'Apport personnel (USD)': cost != null && funding != null ? +(cost - funding).toFixed(2) : '',
