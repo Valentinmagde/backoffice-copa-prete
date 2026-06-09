@@ -53,8 +53,6 @@ type PlanRow = {
   maritalStatus: string;
   educationLevel: string;
   position: string;
-  idDocumentType: string;
-  idDocumentNumber: string;
   province: string;
   commune: string;
   quartier: string;
@@ -69,8 +67,6 @@ type PlanRow = {
   permanentEmployees: number | null;
   totalEmployees: number | null;
   revenueYearN1: number | null;
-  isLedByWoman: boolean | null;
-  isLedByRefugee: boolean | null;
   companyPhone: string;
   companyEmail: string;
   // Infos projet / financement
@@ -108,11 +104,36 @@ function buildRows(evaluations: Evaluation[]): PlanRow[] {
     const age = bd ? Math.floor((Date.now() - new Date(bd).getTime()) / (1000 * 60 * 60 * 24 * 365.25)) : null;
 
     const mapLegal = (code?: string | null, other?: string | null) => {
-      const map: Record<string, string> = {
-        php: 'Personne physique', snc: 'SNC', sprl: 'SPRL',
-        scs: 'SCS', su: 'SU', sa: 'SA', coop: 'Coopérative',
-      };
-      return code ? (map[code] ?? other ?? code) : '—';
+      switch (code) {
+        case 'php':  return 'Personne physique';
+        case 'snc':  return 'Société en Nom Collectif (SNC)';
+        case 'sprl': return 'Société de Personnes à Responsabilité Limitée (SPRL)';
+        case 'scs':  return 'Société en Commandite Simple (SCS)';
+        case 'su':   return 'Société Unipersonnelle (SU)';
+        case 'sa':   return 'Société Anonyme (SA)';
+        case 'coop': return 'Société Coopérative';
+        default:     return other ?? code ?? '—';
+      }
+    };
+
+    const mapMarital = (code?: string | null) => {
+      switch (code) {
+        case 'single':   return 'Célibataire';
+        case 'married':  return 'Marié(e)';
+        case 'divorced': return 'Divorcé(e)';
+        case 'widowed':  return 'Veuf(ve)';
+        default:         return '—';
+      }
+    };
+
+    const mapEducation = (code?: string | null) => {
+      switch (code) {
+        case 'none':       return 'Non scolarisé(e)';
+        case 'primary':    return 'Primaire';
+        case 'secondary':  return 'Secondaire';
+        case 'university': return 'Universitaire';
+        default:           return '—';
+      }
     };
 
     return {
@@ -128,11 +149,9 @@ function buildRows(evaluations: Evaluation[]): PlanRow[] {
       birthDate:        bd ? new Date(bd).toLocaleDateString('fr-FR') : '—',
       age,
       category:         ben?.category === 'REFUGEE' ? 'Réfugié(e)' : ben?.category === 'BURUNDIAN' ? 'Burundais(e)' : ben?.category === 'OTHER' ? 'Autre' : '—',
-      maritalStatus:    ben?.maritalStatus  ?? '—',
-      educationLevel:   ben?.educationLevel ?? '—',
-      position:         ben?.position       ?? '—',
-      idDocumentType:   u?.idDocumentType   ?? '—',
-      idDocumentNumber: u?.idDocumentNumber ?? '—',
+      maritalStatus:    mapMarital(ben?.maritalStatus),
+      educationLevel:   mapEducation(ben?.educationLevel),
+      position:         ben?.position ?? '—',
       province:  u?.primaryAddress?.commune?.province?.name ?? '—',
       commune:   u?.primaryAddress?.commune?.name           ?? '—',
       quartier:  u?.primaryAddress?.neighborhood            ?? '—',
@@ -147,8 +166,6 @@ function buildRows(evaluations: Evaluation[]): PlanRow[] {
       permanentEmployees: co?.permanentEmployees ?? null,
       totalEmployees:     co?.totalEmployees     ?? null,
       revenueYearN1:      co?.revenueYearN1      ?? null,
-      isLedByWoman:       co?.isLedByWoman       ?? null,
-      isLedByRefugee:     co?.isLedByRefugee     ?? null,
       companyPhone:       co?.companyPhone ?? '—',
       companyEmail:       co?.companyEmail ?? '—',
       // Infos projet / financement
@@ -265,8 +282,6 @@ function exportExcel(rows: PlanRow[]) {
       'Situation matrimoniale':row.maritalStatus,
       "Niveau d'éducation":    row.educationLevel,
       'Fonction':              row.position,
-      'Type de pièce':         row.idDocumentType,
-      'N° pièce':              row.idDocumentNumber,
       'Province':              row.province,
       'Commune':               row.commune,
       'Quartier':              row.quartier,
@@ -282,15 +297,13 @@ function exportExcel(rows: PlanRow[]) {
       'Employés permanents':   row.permanentEmployees ?? '',
       'Employés total':        row.totalEmployees     ?? '',
       'CA N-1 (BIF)':          row.revenueYearN1      ?? '',
-      'Dirigée par une femme': row.isLedByWoman  != null ? (row.isLedByWoman  ? 'Oui' : 'Non') : '',
-      'Dirigée par un réfugié':row.isLedByRefugee!= null ? (row.isLedByRefugee? 'Oui' : 'Non') : '',
       'Tél. entreprise':       row.companyPhone,
       'Email entreprise':      row.companyEmail,
 
       // ── Informations sur le projet ──
       'Titre du projet':             row.projectTitle,
-      'Coût total demandé (USD)':    row.totalProjectCostRequested ?? '',
-      'Subvention demandée (USD)':   row.requestedSubsidyAmount    ?? '',
+      'Coût total demandé (BIF)':    row.totalProjectCostRequested ?? '',
+      'Subvention demandée (BIF)':   row.requestedSubsidyAmount    ?? '',
       'Femmes prévues':              row.plannedWomen ?? '',
       'Hommes prévus':               row.plannedMen   ?? '',
 
