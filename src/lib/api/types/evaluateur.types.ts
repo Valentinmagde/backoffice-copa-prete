@@ -62,6 +62,7 @@ export interface Evaluation {
     copaEdition?: { id: number; name: string };
     beneficiary?: {
       id: number;
+      applicationCode?: string | null;
       totalProjectCost?: number | null;
       requestedSubsidyAmount?: number | null;
       category?: string;

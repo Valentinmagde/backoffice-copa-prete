@@ -39,6 +39,7 @@ function evalName(ev: Evaluation): string {
 type PlanRow = {
   businessPlanId: number;
   referenceNumber: string;
+  applicationCode: string;
   beneficiary: string;
   companyName: string;
   gender: string;
@@ -76,6 +77,7 @@ function buildRows(evaluations: Evaluation[]): PlanRow[] {
     return {
       businessPlanId: id,
       referenceNumber: bp?.referenceNumber ?? `#${id}`,
+      applicationCode: bp?.beneficiary?.applicationCode ?? '—',
       beneficiary: u ? `${u.firstName} ${u.lastName}` : '—',
       companyName: bp?.beneficiary?.company?.companyName ?? bp?.projectTitle ?? '—',
       gender: bp?.beneficiary?.user?.gender?.code === 'M' ? 'Masculin' : bp?.beneficiary?.user?.gender?.code === 'F' ? 'Féminin' : '—',
@@ -186,6 +188,7 @@ function exportExcel(rows: PlanRow[]) {
 
     return {
       'Référence': row.referenceNumber,
+      'Code bénéficiaire': row.applicationCode,
       'Représentant': row.beneficiary,
       "Nom de l'entreprise": row.companyName,
       'Sexe': row.gender,
