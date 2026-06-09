@@ -38,26 +38,54 @@ function evalName(ev: Evaluation): string {
 
 type PlanRow = {
   businessPlanId: number;
+  // Identifiants
   referenceNumber: string;
   applicationCode: string;
+  edition: string;
+  // Infos personnelles
   beneficiary: string;
-  companyName: string;
+  email: string;
+  phone: string;
   gender: string;
-  category: string;
+  birthDate: string;
   age: number | null;
+  category: string;
+  maritalStatus: string;
+  educationLevel: string;
+  position: string;
+  idDocumentType: string;
+  idDocumentNumber: string;
   province: string;
   commune: string;
-  rue: string;
   quartier: string;
+  rue: string;
+  // Infos entreprise
+  companyName: string;
+  companyType: string;
+  legalStatus: string;
+  taxIdNumber: string;
+  companySector: string;
+  companyCreationDate: string;
+  permanentEmployees: number | null;
+  totalEmployees: number | null;
+  revenueYearN1: number | null;
+  isLedByWoman: boolean | null;
+  isLedByRefugee: boolean | null;
+  companyPhone: string;
+  companyEmail: string;
+  // Infos projet / financement
+  projectTitle: string;
+  totalProjectCostRequested: number | null;
+  requestedSubsidyAmount: number | null;
   plannedWomen: number | null;
   plannedMen: number | null;
-  edition: string;
-  evaluations: Evaluation[];
-  avgTotal: number | null;
   verifiedInvestmentSubsidy: number | null;
   verifiedExploitationSubsidy: number | null;
   verifiedFundingAmount: number | null;
   verifiedTotalProjectCost: number | null;
+  // Évaluations
+  evaluations: Evaluation[];
+  avgTotal: number | null;
 };
 
 function buildRows(evaluations: Evaluation[]): PlanRow[] {
@@ -73,34 +101,68 @@ function buildRows(evaluations: Evaluation[]): PlanRow[] {
     const slots = evs.slice(0, 3);
     const totals = slots.map(evalTotal);
     const avgTotal = totals.length > 0 ? totals.reduce((a, b) => a + b, 0) / totals.length : null;
-    const u = bp?.beneficiary?.user;
+    const ben = bp?.beneficiary;
+    const u   = ben?.user;
+    const co  = ben?.company;
+    const bd  = u?.birthDate;
+    const age = bd ? Math.floor((Date.now() - new Date(bd).getTime()) / (1000 * 60 * 60 * 24 * 365.25)) : null;
+
+    const mapLegal = (code?: string | null, other?: string | null) => {
+      const map: Record<string, string> = {
+        php: 'Personne physique', snc: 'SNC', sprl: 'SPRL',
+        scs: 'SCS', su: 'SU', sa: 'SA', coop: 'Coopérative',
+      };
+      return code ? (map[code] ?? other ?? code) : '—';
+    };
+
     return {
       businessPlanId: id,
       referenceNumber: bp?.referenceNumber ?? `#${id}`,
-      applicationCode: bp?.beneficiary?.applicationCode ?? '—',
-      beneficiary: u ? `${u.firstName} ${u.lastName}` : '—',
-      companyName: bp?.beneficiary?.company?.companyName ?? bp?.projectTitle ?? '—',
-      gender: bp?.beneficiary?.user?.gender?.code === 'M' ? 'Masculin' : bp?.beneficiary?.user?.gender?.code === 'F' ? 'Féminin' : '—',
-      category: bp?.beneficiary?.category === 'REFUGEE' ? 'Réfugié(e)' : bp?.beneficiary?.category === 'BURUNDIAN' ? 'Burundais(e)' : bp?.beneficiary?.category === 'OTHER' ? 'Autre' : '—',
-      age: (() => {
-        const bd = bp?.beneficiary?.user?.birthDate;
-        if (!bd) return null;
-        const diff = Date.now() - new Date(bd).getTime();
-        return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
-      })(),
-      province: bp?.beneficiary?.user?.primaryAddress?.commune?.province?.name ?? '—',
-      commune:  bp?.beneficiary?.user?.primaryAddress?.commune?.name ?? '—',
-      rue:      bp?.beneficiary?.user?.primaryAddress?.street ?? '—',
-      quartier: bp?.beneficiary?.user?.primaryAddress?.neighborhood ?? '—',
-      plannedWomen: bp?.beneficiary?.plannedEmployeesFemale ?? null,
-      plannedMen: bp?.beneficiary?.plannedEmployeesMale ?? null,
+      applicationCode: ben?.applicationCode ?? '—',
       edition: bp?.copaEdition?.name ?? '—',
+      // Infos personnelles
+      beneficiary:      u ? `${u.firstName} ${u.lastName}` : '—',
+      email:            u?.email            ?? '—',
+      phone:            u?.phoneNumber      ?? '—',
+      gender:           u?.gender?.code === 'M' ? 'Masculin' : u?.gender?.code === 'F' ? 'Féminin' : '—',
+      birthDate:        bd ? new Date(bd).toLocaleDateString('fr-FR') : '—',
+      age,
+      category:         ben?.category === 'REFUGEE' ? 'Réfugié(e)' : ben?.category === 'BURUNDIAN' ? 'Burundais(e)' : ben?.category === 'OTHER' ? 'Autre' : '—',
+      maritalStatus:    ben?.maritalStatus  ?? '—',
+      educationLevel:   ben?.educationLevel ?? '—',
+      position:         ben?.position       ?? '—',
+      idDocumentType:   u?.idDocumentType   ?? '—',
+      idDocumentNumber: u?.idDocumentNumber ?? '—',
+      province:  u?.primaryAddress?.commune?.province?.name ?? '—',
+      commune:   u?.primaryAddress?.commune?.name           ?? '—',
+      quartier:  u?.primaryAddress?.neighborhood            ?? '—',
+      rue:       u?.primaryAddress?.street                  ?? '—',
+      // Infos entreprise
+      companyName:       co?.companyName ?? bp?.projectTitle ?? '—',
+      companyType:       co?.companyType === 'formal' ? 'Formel' : co?.companyType === 'informal' ? 'Informel' : co?.companyType === 'project' ? 'Projet' : '—',
+      legalStatus:       mapLegal(co?.legalStatus, co?.legalStatusOther),
+      taxIdNumber:       co?.taxIdNumber   ?? '—',
+      companySector:     co?.primarySector?.nameFr ?? co?.otherCompanySector ?? '—',
+      companyCreationDate: co?.creationDate ? new Date(co.creationDate).toLocaleDateString('fr-FR') : '—',
+      permanentEmployees: co?.permanentEmployees ?? null,
+      totalEmployees:     co?.totalEmployees     ?? null,
+      revenueYearN1:      co?.revenueYearN1      ?? null,
+      isLedByWoman:       co?.isLedByWoman       ?? null,
+      isLedByRefugee:     co?.isLedByRefugee     ?? null,
+      companyPhone:       co?.companyPhone ?? '—',
+      companyEmail:       co?.companyEmail ?? '—',
+      // Infos projet / financement
+      projectTitle:               bp?.projectTitle              ?? '—',
+      totalProjectCostRequested:  ben?.totalProjectCost         ?? null,
+      requestedSubsidyAmount:     ben?.requestedSubsidyAmount   ?? null,
+      plannedWomen:               ben?.plannedEmployeesFemale   ?? null,
+      plannedMen:                 ben?.plannedEmployeesMale     ?? null,
+      verifiedInvestmentSubsidy:  bp?.verifiedInvestmentSubsidy ?? null,
+      verifiedExploitationSubsidy:bp?.verifiedExploitationSubsidy ?? null,
+      verifiedFundingAmount:      bp?.verifiedFundingAmount     ?? null,
+      verifiedTotalProjectCost:   bp?.verifiedTotalProjectCost  ?? null,
       evaluations: slots,
       avgTotal,
-      verifiedInvestmentSubsidy: bp?.verifiedInvestmentSubsidy ?? null,
-      verifiedExploitationSubsidy: bp?.verifiedExploitationSubsidy ?? null,
-      verifiedFundingAmount: bp?.verifiedFundingAmount ?? null,
-      verifiedTotalProjectCost: bp?.verifiedTotalProjectCost ?? null,
     };
   });
 }
@@ -183,33 +245,67 @@ function exportExcel(rows: PlanRow[]) {
         : '';
     });
 
-    const cost = row.verifiedTotalProjectCost;
+    const cost    = row.verifiedTotalProjectCost;
     const funding = row.verifiedFundingAmount;
 
     return {
-      'Référence': row.referenceNumber,
+      // ── Identifiants ──
+      'Référence':        row.referenceNumber,
       'Code bénéficiaire': row.applicationCode,
-      'Représentant': row.beneficiary,
-      "Nom de l'entreprise": row.companyName,
-      'Sexe': row.gender,
-      'Statut': row.category,
-      'Âge': row.age ?? '',
-      'Province': row.province,
-      'Commune': row.commune,
-      'Rue': row.rue,
-      'Quartier': row.quartier,
-      'Nb. femmes prévues': row.plannedWomen ?? '',
-      'Nb. hommes prévus': row.plannedMen ?? '',
+      'Édition':           row.edition,
+
+      // ── Informations personnelles ──
+      'Représentant':          row.beneficiary,
+      'Email':                 row.email,
+      'Téléphone':             row.phone,
+      'Sexe':                  row.gender,
+      'Date de naissance':     row.birthDate,
+      'Âge':                   row.age ?? '',
+      'Statut':                row.category,
+      'Situation matrimoniale':row.maritalStatus,
+      "Niveau d'éducation":    row.educationLevel,
+      'Fonction':              row.position,
+      'Type de pièce':         row.idDocumentType,
+      'N° pièce':              row.idDocumentNumber,
+      'Province':              row.province,
+      'Commune':               row.commune,
+      'Quartier':              row.quartier,
+      'Rue':                   row.rue,
+
+      // ── Informations sur l'entreprise ──
+      "Nom de l'entreprise":   row.companyName,
+      "Type d'entreprise":     row.companyType,
+      'Statut légal':          row.legalStatus,
+      'NIF':                   row.taxIdNumber,
+      "Secteur d'activité":    row.companySector,
+      "Date de création":      row.companyCreationDate,
+      'Employés permanents':   row.permanentEmployees ?? '',
+      'Employés total':        row.totalEmployees     ?? '',
+      'CA N-1 (BIF)':          row.revenueYearN1      ?? '',
+      'Dirigée par une femme': row.isLedByWoman  != null ? (row.isLedByWoman  ? 'Oui' : 'Non') : '',
+      'Dirigée par un réfugié':row.isLedByRefugee!= null ? (row.isLedByRefugee? 'Oui' : 'Non') : '',
+      'Tél. entreprise':       row.companyPhone,
+      'Email entreprise':      row.companyEmail,
+
+      // ── Informations sur le projet ──
+      'Titre du projet':             row.projectTitle,
+      'Coût total demandé (USD)':    row.totalProjectCostRequested ?? '',
+      'Subvention demandée (USD)':   row.requestedSubsidyAmount    ?? '',
+      'Femmes prévues':              row.plannedWomen ?? '',
+      'Hommes prévus':               row.plannedMen   ?? '',
+
+      // ── Évaluations ──
       ...evaluatorCols,
       'Moyenne /160': row.avgTotal != null ? +row.avgTotal.toFixed(2) : '',
-      '% moyen': row.avgTotal != null ? +((row.avgTotal / TOTAL_MAX) * 100).toFixed(2) : '',
-      'Subv. investissement (USD)': row.verifiedInvestmentSubsidy ?? '',
-      'Subv. exploitation (USD)': row.verifiedExploitationSubsidy ?? '',
-      'Ratio exploitation (%)': row.verifiedExploitationSubsidy != null && row.verifiedFundingAmount != null && row.verifiedFundingAmount > 0
-        ? +((row.verifiedExploitationSubsidy / row.verifiedFundingAmount) * 100).toFixed(1)
-        : '',
-      'Subvention totale (USD)': funding ?? '',
-      'Coût total vérifié (USD)': cost ?? '',
+      '% moyen':      row.avgTotal != null ? +((row.avgTotal / TOTAL_MAX) * 100).toFixed(2) : '',
+
+      // ── Financement vérifié ──
+      'Subv. investissement vérifiée (USD)': row.verifiedInvestmentSubsidy  ?? '',
+      'Subv. exploitation vérifiée (USD)':   row.verifiedExploitationSubsidy ?? '',
+      'Ratio exploitation (%)': row.verifiedExploitationSubsidy != null && funding != null && funding > 0
+        ? +((row.verifiedExploitationSubsidy / funding) * 100).toFixed(1) : '',
+      'Subvention totale vérifiée (USD)': funding ?? '',
+      'Coût total vérifié (USD)':         cost    ?? '',
       'Apport personnel (USD)': cost != null && funding != null ? +(cost - funding).toFixed(2) : '',
     };
   });

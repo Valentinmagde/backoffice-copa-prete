@@ -63,15 +63,22 @@ export interface Evaluation {
     beneficiary?: {
       id: number;
       applicationCode?: string | null;
+      category?: string;
+      maritalStatus?: string | null;
+      educationLevel?: string | null;
+      position?: string | null;
       totalProjectCost?: number | null;
       requestedSubsidyAmount?: number | null;
-      category?: string;
-      plannedEmployeesFemale?: number;
-      plannedEmployeesMale?: number;
+      plannedEmployeesFemale?: number | null;
+      plannedEmployeesMale?: number | null;
       user?: {
         firstName: string;
         lastName: string;
+        email?: string;
+        phoneNumber?: string;
         birthDate?: string;
+        idDocumentType?: string | null;
+        idDocumentNumber?: string | null;
         gender?: { code: string; label: string };
         primaryAddress?: {
           street?: string | null;
@@ -79,7 +86,23 @@ export interface Evaluation {
           commune?: { name?: string; province?: { name?: string } } | null;
         };
       };
-      company?: { companyName: string };
+      company?: {
+        companyName: string;
+        companyType?: string | null;
+        legalStatus?: string | null;
+        legalStatusOther?: string | null;
+        taxIdNumber?: string | null;
+        creationDate?: string | null;
+        permanentEmployees?: number | null;
+        totalEmployees?: number | null;
+        revenueYearN1?: number | null;
+        isLedByWoman?: boolean | null;
+        isLedByRefugee?: boolean | null;
+        companyPhone?: string | null;
+        companyEmail?: string | null;
+        otherCompanySector?: string | null;
+        primarySector?: { nameFr?: string } | null;
+      };
     };
   };
 }
