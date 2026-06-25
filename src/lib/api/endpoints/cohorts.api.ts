@@ -140,6 +140,14 @@ class CohortsApi {
     async duplicateCohort(id: number, year: number): Promise<Cohort> {
         return apiClient.post(`${this.base}/${id}/duplicate`, { year });
     }
+
+    /**
+     * Complète les phases standard manquantes d'une cohorte
+     * POST /reference/copa-editions/:id/complete-phases
+     */
+    async completeMissingPhases(id: number): Promise<any[]> {
+        return apiClient.post(`${this.base}/${id}/complete-phases`);
+    }
 }
 
 export const cohortsApi = new CohortsApi();

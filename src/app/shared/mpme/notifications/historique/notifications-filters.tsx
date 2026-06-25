@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Input, Select, Button } from 'rizzui';
 import { PiMagnifyingGlass, PiXBold } from 'react-icons/pi';
+import CohortSelect from '@/app/shared/cohorts/cohort-select';
 
 const channelOptions = [
   { label: 'Email', value: 'EMAIL' },
@@ -64,7 +65,7 @@ export default function NotificationsFilters({
     onResetFilters?.();
   };
 
-  const hasFilters = search || channelFilter || typeFilter || statusFilter;
+  const hasFilters = search || channelFilter || typeFilter || statusFilter || filters?.editionId;
 
   return (
     <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -74,6 +75,10 @@ export default function NotificationsFilters({
         value={search}
         onChange={(e) => handleSearch(e.target.value)}
         className="w-full sm:w-72"
+      />
+      <CohortSelect
+        value={filters?.editionId}
+        onChange={(editionId) => onFilterChange?.({ ...filters, editionId })}
       />
       <Select
         placeholder="Canal"

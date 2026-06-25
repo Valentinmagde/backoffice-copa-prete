@@ -77,8 +77,8 @@ function CustomLabel(props: any) {
   );
 }
 
-export default function BiggestDeal({ className }: { className?: string }) {
-  const { data: pipeline, isLoading } = useStatusPipeline();
+export default function BiggestDeal({ className, editionId }: { className?: string; editionId?: number }) {
+  const { data: pipeline, isLoading } = useStatusPipeline(editionId);
 
   if (isLoading || !pipeline) {
     return (

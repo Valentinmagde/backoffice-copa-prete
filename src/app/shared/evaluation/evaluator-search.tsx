@@ -14,6 +14,7 @@ import { SCORE_CRITERIA as CRITERIA, TOTAL_MAX } from '@/lib/api/types/evaluateu
 import type { Evaluation } from '@/lib/api/types/evaluateur.types';
 import { routes } from '@/config/routes';
 import type { BusinessPlan } from '@/lib/api/endpoints/business-plan.api';
+import CohortSelect from '@/app/shared/cohorts/cohort-select';
 
 const STATUS_META: Record<string, { label: string; dot: string; text: string }> = {
   DRAFT:            { label: 'Brouillon',             dot: 'bg-gray-400',   text: 'text-gray-500' },
@@ -210,12 +211,13 @@ export default function EvaluatorSearch() {
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [evalSearch, setEvalSearch] = useState('');
+  const [editionId, setEditionId] = useState<number | undefined>(undefined);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: LIMIT });
 
   const { data, isLoading: loadingPlans, isFetching: fetchingPlans } = useBusinessPlans(
-    search ? { search, page: pagination.pageIndex + 1, limit: pagination.pageSize } : undefined,
+    search ? { search, copaEditionId: editionId, page: pagination.pageIndex + 1, limit: pagination.pageSize } : undefined,
   );
-  const { data: myEvaluationsData, isLoading: loadingMine } = useMyEvaluations();
+  const { data: myEvaluationsData, isLoading: loadingMine } = useMyEvaluations(editionId);
 
   const plans = useMemo(
     () => (search ? (data?.data ?? []) : []),
@@ -271,7 +273,7 @@ export default function EvaluatorSearch() {
   useEffect(() => {
     planTable.setPageIndex(0);
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-  }, [search]);
+  }, [search, editionId]);
 
   return (
     <div className="space-y-10">
@@ -289,6 +291,7 @@ export default function EvaluatorSearch() {
             prefix={<PiMagnifyingGlassBold className="size-4" />}
             className="flex-1 max-w-lg"
           />
+          <CohortSelect value={editionId} onChange={setEditionId} />
           {search && (
             <Text className="text-sm text-gray-500">{total} évaluation(s) trouvée(s)</Text>
           )}

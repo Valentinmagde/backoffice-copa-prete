@@ -10,6 +10,7 @@ import MPMECandidaturesTable from '@/app/shared/mpme/candidatures/mpme-candidatu
 import { exportToCSV } from '@core/utils/export-to-csv-2';
 import ExportColumnsSelector from '@core/components/export-columns-selector';
 import { debounce } from 'lodash';
+import CohortSelect from '@/app/shared/cohorts/cohort-select';
 
 const pageHeader = {
   title: 'Candidatures MPME',
@@ -63,6 +64,9 @@ export const parseUrlParams = (searchParams: URLSearchParams): {
   // Filtres texte/recherche
   const search = searchParams.get('search') || '';
 
+  // Édition COPA
+  const copaEditionId = searchParams.get('copaEditionId') ? parseInt(searchParams.get('copaEditionId')!) : undefined;
+
   // Filtres simples (string)
   const statusId = searchParams.get('statusId') || undefined;
   const category = searchParams.get('category') || undefined;
@@ -97,6 +101,7 @@ export const parseUrlParams = (searchParams: URLSearchParams): {
     },
     filters: {
       search,
+      copaEditionId,
       statusId: statusId ? statusId : undefined,
       category: category ? category : undefined,
       companyType: companyType ? companyType : undefined,
@@ -139,6 +144,9 @@ export const buildUrlWithParams = (
   // Filtres texte/recherche
   if (filters.search) params.set('search', filters.search);
 
+  // Édition COPA
+  if (filters.copaEditionId) params.set('copaEditionId', filters.copaEditionId.toString());
+
   // Filtres simples (string)
   if (filters.statusId) params.set('statusId', filters.statusId.toLocaleString());
   if (filters.category) params.set('category', filters.category);
@@ -173,6 +181,7 @@ export const buildUrlWithParams = (
 export const resetFilters = (): Omit<MPMEFilters, 'page' | 'limit'> => ({
   isProfileComplete: true,
   search: '',
+  copaEditionId: undefined,
   statusId: undefined,
   category: undefined,
   companyType: undefined,
@@ -269,6 +278,10 @@ export default function MPMECandidaturesPage() {
     <>
       <PageHeader title={pageHeader.title} breadcrumb={pageHeader.breadcrumb}>
         <div className="mt-4 flex items-center gap-3 @lg:mt-0">
+          <CohortSelect
+            value={filters.copaEditionId}
+            onChange={(copaEditionId) => handleFilterChange({ copaEditionId })}
+          />
           <ExportColumnsSelector
             columns={EXPORT_COLUMNS}
             defaultSelected={DEFAULT_EXPORT_COLUMNS}

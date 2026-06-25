@@ -7,8 +7,11 @@ import FormGroup from '@/app/shared/form-group';
 import PageHeader from '@/app/shared/page-header';
 import { routes } from '@/config/routes';
 import {
+    useActivateCohort,
     useCohort,
     useCohortePhases,
+    useCompleteMissingPhases,
+    useDeactivateCohort,
     useTogglePhase,
     useUpdatePhaseDates,
 } from '@/lib/api/hooks/use-cohorts';
@@ -63,6 +66,9 @@ export default function CohortDetailPage({ params }: { params: Promise<{ id: str
     const { data: phases, isLoading: phasesLoading } = useCohortePhases(editionId);
     const { mutate: togglePhase, isPending: isToggling } = useTogglePhase(editionId);
     const { mutate: updateDates, isPending: isUpdatingDates } = useUpdatePhaseDates(editionId);
+    const { mutate: activateCohort, isPending: isActivating } = useActivateCohort();
+    const { mutate: deactivateCohort, isPending: isDeactivating } = useDeactivateCohort();
+    const { mutate: completeMissingPhases, isPending: isCompletingPhases } = useCompleteMissingPhases(editionId);
 
     const [editingPhase, setEditingPhase] = useState<number | null>(null);
     const [draftDates, setDraftDates] = useState({ startDate: '', endDate: '' });
@@ -107,13 +113,28 @@ export default function CohortDetailPage({ params }: { params: Promise<{ id: str
                     { name: cohort.nameFr ?? cohort.name },
                 ]}
             >
-                <Badge
-                    color={cohort.isActive ? 'success' : 'danger'}
-                    variant="flat"
-                    className="text-sm"
-                >
-                    {cohort.isActive ? 'Active' : 'Inactive'}
-                </Badge>
+                <div className="flex items-center gap-3">
+                    <Badge
+                        color={cohort.isActive ? 'success' : 'danger'}
+                        variant="flat"
+                        className="text-sm"
+                    >
+                        {cohort.isActive ? 'Active' : 'Inactive'}
+                    </Badge>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        color={cohort.isActive ? 'danger' : 'primary'}
+                        isLoading={isActivating || isDeactivating}
+                        onClick={() =>
+                            cohort.isActive
+                                ? deactivateCohort(editionId)
+                                : activateCohort(editionId)
+                        }
+                    >
+                        {cohort.isActive ? 'Désactiver la cohorte' : 'Activer la cohorte'}
+                    </Button>
+                </div>
             </PageHeader>
 
             {/* Informations générales */}
@@ -148,7 +169,21 @@ export default function CohortDetailPage({ params }: { params: Promise<{ id: str
 
             {/* Gestion des phases */}
             <FormGroup
-                title="Phases"
+                title={
+                    <div className="flex items-center justify-between gap-3">
+                        <span>Phases</span>
+                        {!phasesLoading && sortedPhases.length < 8 && (
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                isLoading={isCompletingPhases}
+                                onClick={() => completeMissingPhases()}
+                            >
+                                Compléter les phases manquantes
+                            </Button>
+                        )}
+                    </div>
+                }
                 description="Activez ou désactivez chaque phase pour contrôler l'accès des candidats."
             >
                 <div className="col-span-full @4xl:col-span-8 rounded-lg border border-muted bg-white overflow-hidden">

@@ -99,72 +99,72 @@ class DashboardApi {
      * Récupère les statistiques des cartes
      * GET /dashboard/stats
      */
-    async getStatsCards(): Promise<DashboardStats> {
-        return apiClient.get('/dashboard/stats');
+    async getStatsCards(editionId?: number): Promise<DashboardStats> {
+        return apiClient.get('/dashboard/stats', { params: { editionId } });
     }
 
     /**
      * Récupère les candidatures par secteur
      * GET /dashboard/sectors
      */
-    async getCandidatesBySector(): Promise<SectorData[]> {
-        return apiClient.get('/dashboard/sectors');
+    async getCandidatesBySector(editionId?: number): Promise<SectorData[]> {
+        return apiClient.get('/dashboard/sectors', { params: { editionId } });
     }
 
     /**
      * Récupère les inscriptions par région
      * GET /dashboard/regions
      */
-    async getRegionalInscriptions(): Promise<RegionData[]> {
-        return apiClient.get('/dashboard/regions');
+    async getRegionalInscriptions(editionId?: number): Promise<RegionData[]> {
+        return apiClient.get('/dashboard/regions', { params: { editionId } });
     }
 
     /**
      * Récupère l'analyse par genre et catégorie
      * GET /dashboard/gender-category
      */
-    async getGenderCategoryAnalysis(): Promise<GenderCategoryAnalysis[]> {
-        return apiClient.get('/dashboard/gender-category');
+    async getGenderCategoryAnalysis(editionId?: number): Promise<GenderCategoryAnalysis[]> {
+        return apiClient.get('/dashboard/gender-category', { params: { editionId } });
     }
 
     /**
      * Récupère l'évolution des inscriptions
      * GET /dashboard/trend?months=12
      */
-    async getRegistrationTrend(months: number = 12): Promise<RegistrationTrend[]> {
-        return apiClient.get('/dashboard/trend', { params: { months } });
+    async getRegistrationTrend(months: number = 12, editionId?: number): Promise<RegistrationTrend[]> {
+        return apiClient.get('/dashboard/trend', { params: { months, editionId } });
     }
 
     /**
      * Récupère le pipeline par statut
      * GET /dashboard/pipeline
      */
-    async getStatusPipeline(): Promise<StatusPipeline[]> {
-        return apiClient.get('/dashboard/pipeline');
+    async getStatusPipeline(editionId?: number): Promise<StatusPipeline[]> {
+        return apiClient.get('/dashboard/pipeline', { params: { editionId } });
     }
 
     /**
      * Récupère les dernières candidatures
      * GET /dashboard/recent-applications?limit=21
      */
-    async getRecentApplications(limit: number = 21): Promise<RecentApplication[]> {
-        return apiClient.get('/dashboard/recent-applications', { params: { limit } });
+    async getRecentApplications(limit: number = 21, editionId?: number): Promise<RecentApplication[]> {
+        return apiClient.get('/dashboard/recent-applications', { params: { limit, editionId } });
     }
 
     /**
      * Récupère toutes les données du dashboard en un seul appel
      * GET /dashboard/full
      */
-    async getFullDashboardData(): Promise<FullDashboardData> {
-        return apiClient.get('/dashboard/full');
+    async getFullDashboardData(editionId?: number): Promise<FullDashboardData> {
+        return apiClient.get('/dashboard/full', { params: { editionId } });
     }
 
-    async getCompanyStatusAnalysis(): Promise<Array<{ status: string; count: number; percentage: number }>> {
-        return apiClient.get('/dashboard/company-status');
+    async getCompanyStatusAnalysis(editionId?: number): Promise<Array<{ status: string; count: number; percentage: number }>> {
+        return apiClient.get('/dashboard/company-status', { params: { editionId } });
     }
 
-    async getRegistrationTrendByPeriod(period: string): Promise<any> {
-        return apiClient.get(`/dashboard/trend/${period}`);
+    async getRegistrationTrendByPeriod(period: string, editionId?: number): Promise<any> {
+        return apiClient.get(`/dashboard/trend/${period}`, { params: { editionId } });
     }
 }
 

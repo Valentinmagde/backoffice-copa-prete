@@ -46,6 +46,7 @@ export interface NotificationFilters {
     endDate?: string;
     page?: number;
     limit?: number;
+    editionId?: number;
 }
 
 export interface PaginatedNotifications {

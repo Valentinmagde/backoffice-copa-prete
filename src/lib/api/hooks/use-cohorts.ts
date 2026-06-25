@@ -130,8 +130,9 @@ export function useActivateCohort() {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: (id: number) => cohortsApi.activateCohort(id),
-        onSuccess: () => {
+        onSuccess: (_, id) => {
             qc.invalidateQueries({ queryKey: cohortsKeys.lists() });
+            qc.invalidateQueries({ queryKey: cohortsKeys.detail(id) });
             qc.invalidateQueries({ queryKey: cohortsKeys.active() });
             qc.invalidateQueries({ queryKey: cohortsKeys.stats() });
             toast.success('Cohorte activée avec succès');
@@ -150,8 +151,9 @@ export function useDeactivateCohort() {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: (id: number) => cohortsApi.deactivateCohort(id),
-        onSuccess: () => {
+        onSuccess: (_, id) => {
             qc.invalidateQueries({ queryKey: cohortsKeys.lists() });
+            qc.invalidateQueries({ queryKey: cohortsKeys.detail(id) });
             qc.invalidateQueries({ queryKey: cohortsKeys.active() });
             qc.invalidateQueries({ queryKey: cohortsKeys.stats() });
             toast.success('Cohorte désactivée avec succès');
@@ -203,6 +205,23 @@ export function useUpdatePhaseDates(editionId: number) {
         },
         onError: (error: any) => {
             toast.error(error?.response?.data?.message || 'Erreur lors de la mise à jour');
+        },
+    });
+}
+
+/**
+ * Complète les phases standard manquantes d'une cohorte (editionId)
+ */
+export function useCompleteMissingPhases(editionId: number) {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: () => cohortsApi.completeMissingPhases(editionId),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: phaseKeys.byEdition(editionId) });
+            toast.success('Phases manquantes complétées');
+        },
+        onError: (error: any) => {
+            toast.error(error?.response?.data?.message || 'Erreur lors de la complétion des phases');
         },
     });
 }

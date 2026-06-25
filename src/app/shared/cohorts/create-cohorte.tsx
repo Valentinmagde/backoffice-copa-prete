@@ -43,32 +43,49 @@ const statusOptions = [
 ];
 
 interface CreateCohortProps {
-  onClose?: () => void;
-  cohort?: any; // Pour la modification
+  cohort?: any; // présence => mode édition
 }
 
-export default function CreateCohort() {
-  const [reset, setReset] = useState({});
+const toDateInput = (value?: string | null) => (value ? String(value).slice(0, 10) : '');
+
+const blankValues: CohortFormData = {
+  name: '',
+  description: '',
+  code: '',
+  year: new Date().getFullYear(),
+  registrationStartDate: '',
+  registrationEndDate: '',
+  submissionStartDate: '',
+  submissionEndDate: '',
+  totalBudget: undefined,
+  expectedWinnersCount: undefined,
+  status: 'inactive',
+};
+
+const toFormValues = (cohort: any): CohortFormData => ({
+  name: cohort.nameFr ?? cohort.name ?? '',
+  description: cohort.description ?? '',
+  code: cohort.code ?? '',
+  year: cohort.year ?? new Date().getFullYear(),
+  registrationStartDate: toDateInput(cohort.registrationStartDate),
+  registrationEndDate: toDateInput(cohort.registrationEndDate),
+  submissionStartDate: toDateInput(cohort.submissionStartDate),
+  submissionEndDate: toDateInput(cohort.submissionEndDate),
+  totalBudget: cohort.totalBudget != null ? Number(cohort.totalBudget) : undefined,
+  expectedWinnersCount: cohort.expectedWinnersCount ?? undefined,
+  status: cohort.isActive ? 'active' : 'inactive',
+});
+
+export default function CreateCohort({ cohort }: CreateCohortProps) {
+  const isEditMode = !!cohort;
+  const [reset, setReset] = useState<CohortFormData>(
+    isEditMode ? toFormValues(cohort) : blankValues,
+  );
   const [isLoading, setLoading] = useState(false);
 
   const { mutate: createCohort } = useCreateCohort();
   const { mutate: updateCohort } = useUpdateCohort();
   const { closeModal } = useModal();
-
-  // Valeurs par défaut
-  const defaultValues: CohortFormData = {
-    name: '',
-    description: '',
-    code: '',
-    year: new Date().getFullYear(),
-    registrationStartDate: '',
-    registrationEndDate: '',
-    submissionStartDate: '',
-    submissionEndDate: '',
-    totalBudget: undefined,
-    expectedWinnersCount: undefined,
-    status: 'inactive',
-  };
 
   const onSubmit: SubmitHandler<CohortFormData> = (data) => {
     setLoading(true);
@@ -84,27 +101,38 @@ export default function CreateCohort() {
       submissionEndDate: data.submissionEndDate,
       totalBudget: data.totalBudget,
       expectedWinnersCount: data.expectedWinnersCount,
-      isActive: data.status === 'active',
     };
 
-    const mutation = createCohort;
-    const successMessage = 'Cohorte créée avec succès';
+    if (isEditMode) {
+      updateCohort(
+        { id: cohort.id, data: cohortData },
+        {
+          onSuccess: () => {
+            toast.success('Cohorte mise à jour avec succès');
+            closeModal();
+          },
+          onError: (error: any) => {
+            toast.error(error.message || 'Erreur lors de la mise à jour');
+          },
+          onSettled: () => setLoading(false),
+        },
+      );
+      return;
+    }
 
-    mutation(
-      cohortData,
+    createCohort(
+      { ...cohortData, isActive: data.status === 'active' },
       {
         onSuccess: () => {
-          toast.success(successMessage);
-          setReset(defaultValues);
+          toast.success('Cohorte créée avec succès');
+          setReset(blankValues);
           closeModal();
         },
         onError: (error: any) => {
-          toast.error(error.message || `Erreur lors de la création`);
+          toast.error(error.message || 'Erreur lors de la création');
         },
-        onSettled: () => {
-          setLoading(false);
-        },
-      }
+        onSettled: () => setLoading(false),
+      },
     );
   };
 
@@ -118,7 +146,7 @@ export default function CreateCohort() {
         <>
           <div className="col-span-full flex items-center justify-between">
             <Title as="h4" className="font-semibold">
-              Ajouter une cohorte
+              {isEditMode ? 'Modifier la cohorte' : 'Ajouter une cohorte'}
             </Title>
             <ActionIcon size="sm" variant="text" onClick={closeModal}>
               <PiXBold className="h-auto w-5" />
@@ -260,7 +288,7 @@ export default function CreateCohort() {
               isLoading={isLoading}
               className="w-full @xl:w-auto"
             >
-              Créer la cohorte
+              {isEditMode ? 'Enregistrer' : 'Créer la cohorte'}
             </Button>
           </div>
         </>

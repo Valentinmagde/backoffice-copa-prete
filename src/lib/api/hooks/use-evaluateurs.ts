@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 
 const keys = {
   evaluators: () => ['evaluators'] as const,
-  myEvaluations: () => ['my-evaluations'] as const,
+  myEvaluations: (editionId?: number) => ['my-evaluations', editionId ?? null] as const,
   allEvaluations: (editionId?: number) => ['evaluations', 'all', editionId] as const,
   assignments: () => ['evaluation-assignments'] as const,
   assignmentsByBusinessPlan: (id: number) => ['evaluation-assignments', 'bp', id] as const,
@@ -18,10 +18,10 @@ export function useEvaluators() {
   return useQuery({ queryKey: keys.evaluators(), queryFn: () => evaluateurApi.getAllEvaluators() });
 }
 
-export function useMyEvaluations() {
+export function useMyEvaluations(editionId?: number) {
   return useQuery({
-    queryKey: keys.myEvaluations(),
-    queryFn: () => evaluateurApi.getMyEvaluations(),
+    queryKey: keys.myEvaluations(editionId),
+    queryFn: () => evaluateurApi.getMyEvaluations(editionId),
     staleTime: 5 * 60 * 1000,
     retry: false,
   });

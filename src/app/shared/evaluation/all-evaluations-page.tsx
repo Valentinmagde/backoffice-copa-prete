@@ -2,16 +2,23 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import * as XLSX from 'xlsx';
-import { Loader, Text, Select, Button } from 'rizzui';
-import { PiMicrosoftExcelLogoDuotone, PiWarning } from 'react-icons/pi';
+import toast from 'react-hot-toast';
+import { Loader, Text, Button } from 'rizzui';
+import { PiMicrosoftExcelLogoDuotone, PiWarning, PiFolderOpen } from 'react-icons/pi';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useTanStackTable } from '@core/components/table/custom/use-TanStack-Table';
 import Table from '@core/components/table';
 import TablePagination from '@core/components/table/pagination';
 import { useAllEvaluations } from '@/lib/api/hooks/use-evaluateurs';
-import { useCohorts } from '@/lib/api/hooks/use-cohorts';
+import { evaluateurApi } from '@/lib/api/endpoints/evaluateur.api';
+import CohortSelect from '@/app/shared/cohorts/cohort-select';
 import { SCORE_CRITERIA, TOTAL_MAX, RECOMMENDATION_OPTIONS } from '@/lib/api/types/evaluateur.types';
 import type { Evaluation } from '@/lib/api/types/evaluateur.types';
+
+// Référence stable : un nouveau tableau `[]` créé à chaque rendu (valeur par
+// défaut de déstructuration) ferait croire à useMemo/useEffect que les
+// données ont changé à chaque passage, provoquant une boucle de rendu infinie.
+const EMPTY_EVALUATIONS: Evaluation[] = [];
 
 const fmtDate = (d?: string | null) =>
   d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
@@ -42,6 +49,8 @@ type PlanRow = {
   referenceNumber: string;
   applicationCode: string;
   edition: string;
+  status: string;
+  documentUrl: string | null;
   // Infos personnelles
   beneficiary: string;
   email: string;
@@ -141,6 +150,8 @@ function buildRows(evaluations: Evaluation[]): PlanRow[] {
       referenceNumber: bp?.referenceNumber ?? `#${id}`,
       applicationCode: ben?.applicationCode ?? '—',
       edition: bp?.copaEdition?.name ?? '—',
+      status: ben?.status?.nameFr ?? ben?.status?.name ?? '—',
+      documentUrl: bp?.documentUrl ?? null,
       // Infos personnelles
       beneficiary:      u ? `${u.firstName} ${u.lastName}` : '—',
       email:            u?.email            ?? '—',
@@ -270,6 +281,8 @@ function exportExcel(rows: PlanRow[]) {
       'Référence':        row.referenceNumber,
       'Code bénéficiaire': row.applicationCode,
       'Édition':           row.edition,
+      'Statut candidature': row.status,
+      'Lien plan d\'affaires': row.documentUrl ?? '',
 
       // ── Informations personnelles ──
       'Représentant':          row.beneficiary,
@@ -335,19 +348,30 @@ function exportExcel(rows: PlanRow[]) {
 
 export default function AllEvaluationsPage() {
   const [editionId, setEditionId] = useState<number | undefined>(undefined);
+  const [isExportingDossiers, setIsExportingDossiers] = useState(false);
 
-  const { data: evaluations = [], isLoading } = useAllEvaluations(editionId);
-  const { data: cohortsData } = useCohorts();
-
-  const editionOptions = useMemo(() => {
-    const editions = cohortsData?.data ?? [];
-    return [
-      { label: 'Toutes les éditions', value: '' },
-      ...editions.map((e: any) => ({ label: e.name, value: String(e.id) })),
-    ];
-  }, [cohortsData]);
+  const { data: evaluations = EMPTY_EVALUATIONS, isLoading } = useAllEvaluations(editionId);
 
   const rows = useMemo(() => buildRows(evaluations), [evaluations]);
+
+  const handleDownloadDossiers = async () => {
+    setIsExportingDossiers(true);
+    try {
+      const blob = await evaluateurApi.exportDossiersZip(editionId);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dossiers-candidats_${new Date().toISOString().slice(0, 10)}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      toast.error('Erreur lors du téléchargement des dossiers');
+    } finally {
+      setIsExportingDossiers(false);
+    }
+  };
 
   const { table, setData } = useTanStackTable<PlanRow>({
     tableData: rows,
@@ -366,13 +390,7 @@ export default function AllEvaluationsPage() {
           )}
         </div>
         <div className="flex items-center gap-3">
-          <Select
-            options={editionOptions}
-            value={editionId != null ? String(editionId) : ''}
-            onChange={(v: any) => setEditionId(v ? +v : undefined)}
-            className="w-52"
-            selectClassName="h-9 text-sm"
-          />
+          <CohortSelect value={editionId} onChange={setEditionId} />
           <Button
             variant="outline"
             onClick={() => exportExcel(rows)}
@@ -381,6 +399,16 @@ export default function AllEvaluationsPage() {
           >
             <PiMicrosoftExcelLogoDuotone className="size-5 text-green-600" />
             Exporter Excel
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleDownloadDossiers}
+            disabled={rows.length === 0}
+            isLoading={isExportingDossiers}
+            className="flex items-center gap-2 h-9"
+          >
+            <PiFolderOpen className="size-5 text-primary-600" />
+            Télécharger les dossiers (ZIP)
           </Button>
         </div>
       </div>

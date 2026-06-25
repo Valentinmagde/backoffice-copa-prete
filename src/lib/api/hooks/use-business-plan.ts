@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { businessPlanApi } from '../endpoints/business-plan.api';
 import toast from 'react-hot-toast';
 
-export function useBusinessPlans(params?: { search?: string; page?: number; limit?: number; statusId?: number }) {
+export function useBusinessPlans(params?: { search?: string; page?: number; limit?: number; statusId?: number; copaEditionId?: number }) {
   return useQuery({
     queryKey: ['business-plans', params],
     queryFn: () => businessPlanApi.getAll(params),

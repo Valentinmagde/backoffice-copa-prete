@@ -50,13 +50,26 @@ class EvaluateurApi {
     return apiClient.put<Evaluation>(`${this.base}/${id}`, data);
   }
 
-  async getMyEvaluations(): Promise<Evaluation[]> {
-    return apiClient.get<Evaluation[]>(`${this.base}/my/evaluations`, { skipCache: true });
+  async getMyEvaluations(editionId?: number): Promise<Evaluation[]> {
+    const params = editionId ? `?editionId=${editionId}` : '';
+    return apiClient.get<Evaluation[]>(`${this.base}/my/evaluations${params}`, { skipCache: true });
   }
 
   async getAllEvaluations(editionId?: number): Promise<Evaluation[]> {
     const params = editionId ? `?editionId=${editionId}` : '';
     return apiClient.get<Evaluation[]>(`${this.base}${params}`, { skipCache: true });
+  }
+
+  /**
+   * Télécharge un ZIP avec un dossier par candidat (infos + notes + plan
+   * d'affaires déposé en ligne).
+   */
+  async exportDossiersZip(editionId?: number): Promise<Blob> {
+    const params = editionId ? `?editionId=${editionId}` : '';
+    return apiClient.get<Blob>(`${this.base}/export/dossiers${params}`, {
+      responseType: 'blob',
+      skipCache: true,
+    });
   }
 
   async getStats(): Promise<any> {

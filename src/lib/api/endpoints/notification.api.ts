@@ -17,6 +17,7 @@ class NotificationApi {
         if (filters.endDate) queryParams.append('endDate', filters.endDate);
         if (filters.page) queryParams.append('page', filters.page.toString());
         if (filters.limit) queryParams.append('limit', filters.limit.toString());
+        if (filters.editionId) queryParams.append('editionId', filters.editionId.toString());
 
         const url = `${this.base}/history/preselect-reject/${queryParams.toString() ? `?${queryParams}` : ''}`;
         const response = await apiClient.get(url); 

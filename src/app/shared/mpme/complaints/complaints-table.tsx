@@ -200,8 +200,8 @@ function DetailModal({ complaint, onClose }: { complaint: Complaint; onClose: ()
 
 // ─── Composant principal ──────────────────────────────────────────────────────
 
-export default function ComplaintsTable() {
-  const { data: complaints = [], isLoading } = useComplaints();
+export default function ComplaintsTable({ editionId }: { editionId?: number }) {
+  const { data: complaints = [], isLoading } = useComplaints(editionId);
   const [selected, setSelected] = useState<Complaint | null>(null);
   const [filters, setFilters] = useState<ComplaintFilters>({});
 

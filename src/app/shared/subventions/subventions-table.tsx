@@ -45,8 +45,8 @@ function TrancheActions({ subvention }: { subvention: Subvention }) {
   );
 }
 
-export default function SubventionsTable() {
-  const { data: subventions = [], isLoading } = useSubventions();
+export default function SubventionsTable({ editionId }: { editionId?: number }) {
+  const { data: subventions = [], isLoading } = useSubventions(editionId);
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<number | null>(null);
 

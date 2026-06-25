@@ -68,12 +68,13 @@ export interface BusinessPlanDocument {
 class BusinessPlanApi {
   private readonly base = '/business-plans';
 
-  async getAll(params?: { search?: string; page?: number; limit?: number; statusId?: number }): Promise<BusinessPlansResponse> {
+  async getAll(params?: { search?: string; page?: number; limit?: number; statusId?: number; copaEditionId?: number }): Promise<BusinessPlansResponse> {
     const qs = new URLSearchParams();
     if (params?.search) qs.set('search', params.search);
     if (params?.page) qs.set('page', String(params.page));
     if (params?.limit) qs.set('limit', String(params.limit));
     if (params?.statusId) qs.set('statusId', String(params.statusId));
+    if (params?.copaEditionId) qs.set('copaEditionId', String(params.copaEditionId));
     return apiClient.get<BusinessPlansResponse>(`${this.base}?${qs.toString()}`);
   }
 

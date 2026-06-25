@@ -14,6 +14,7 @@ import { SCORE_CRITERIA } from '@/lib/api/types/evaluateur.types';
 import { routes } from '@/config/routes';
 import type { BusinessPlan } from '@/lib/api/endpoints/business-plan.api';
 import type { Evaluation } from '@/lib/api/types/evaluateur.types';
+import CohortSelect from '@/app/shared/cohorts/cohort-select';
 
 function computeMaxCriterionGap(evaluations: Evaluation[]): number {
   if (evaluations.length < 2) return 0;
@@ -137,10 +138,12 @@ const buildColumns = (onAnonymize: (id: number) => void, onView: (plan: Business
 export default function BusinessPlansList() {
   const router = useRouter();
   const [search, setSearch] = useState('');
+  const [editionId, setEditionId] = useState<number | undefined>(undefined);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: LIMIT });
 
   const { data, isLoading, isFetching } = useBusinessPlans({
     search: search || undefined,
+    copaEditionId: editionId,
     page: pagination.pageIndex + 1,
     limit: pagination.pageSize,
   });
@@ -186,7 +189,7 @@ export default function BusinessPlansList() {
   useEffect(() => {
     table.setPageIndex(0);
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-  }, [search]);
+  }, [search, editionId]);
 
   return (
     <div>
@@ -204,6 +207,7 @@ export default function BusinessPlansList() {
           prefix={<PiMagnifyingGlassBold className="size-4" />}
           className="flex-1 max-w-lg"
         />
+        <CohortSelect value={editionId} onChange={setEditionId} />
         {total > 0 && (
           <Text className="text-sm text-gray-500">{total} plan(s) d'affaires</Text>
         )}

@@ -11,8 +11,43 @@ import { routes } from '@/config/routes';
 import { CohortDataType } from '.';
 import { getStatusBadge } from '@core/components/table-utils/get-status-badge';
 import { formatDate } from '@core/utils/format-date';
+import { useModal } from '@/app/shared/modal-views/use-modal';
+import CreateCohort from '../create-cohorte';
 
 const columnHelper = createColumnHelper<CohortDataType>();
+
+function CohortRowActions({
+  cohort,
+  onDelete,
+}: {
+  cohort: CohortDataType;
+  onDelete: () => void;
+}) {
+  const { openModal } = useModal();
+
+  return (
+    <Flex align="center" justify="end" gap="3" className="pe-3">
+      <Tooltip size="sm" content="Modifier la cohorte" placement="top" color="invert">
+        <ActionIcon
+          size="sm"
+          variant="outline"
+          aria-label="Modifier la cohorte"
+          onClick={() => openModal({ view: <CreateCohort cohort={cohort} />, customSize: 600 })}
+        >
+          <PiPencil className="h-4 w-4" />
+        </ActionIcon>
+      </Tooltip>
+      <TableRowActionGroup
+        viewUrl={routes.cohorts.details(cohort.id)}
+        hasEdit={false}
+        deletePopoverTitle="Supprimer cette cohorte"
+        deletePopoverDescription={`Êtes-vous sûr de vouloir supprimer la cohorte "${cohort.name}" ? Cette action est irréversible.`}
+        onDelete={onDelete}
+        className="pe-0"
+      />
+    </Flex>
+  );
+}
 
 const statusConfig = {
   active: { label: 'Actif', color: 'success' },
@@ -55,7 +90,9 @@ export const cohortsColumns = [
     header: 'Nom de la cohorte',
     cell: ({ row }) => (
       <div>
-        <Text className="font-medium text-gray-900">{row.original.nameFr}</Text>
+        <Text className="font-medium text-gray-900">
+          {row.original.nameFr ?? row.original.name}
+        </Text>
         {/* <Text className="text-sm text-gray-500 line-clamp-1">{row.original.description}</Text> */}
       </div>
     ),
@@ -112,7 +149,7 @@ export const cohortsColumns = [
 
   columnHelper.display({
     id: 'action',
-    size: 120,
+    size: 150,
     header: 'Actions',
     cell: ({
       row,
@@ -120,11 +157,8 @@ export const cohortsColumns = [
         options: { meta },
       },
     }) => (
-      <TableRowActionGroup
-        viewUrl={routes.cohorts.details(row.original.id)}
-        hasEdit={false}
-        deletePopoverTitle="Supprimer cette cohorte"
-        deletePopoverDescription={`Êtes-vous sûr de vouloir supprimer la cohorte "${row.original.name}" ? Cette action est irréversible.`}
+      <CohortRowActions
+        cohort={row.original}
         onDelete={() => meta?.handleDeleteRow?.(row.original)}
       />
     ),

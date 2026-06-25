@@ -74,8 +74,8 @@ const colonnesCandidatures = [
   },
 ];
 
-export default function RecentCustomers({ className }: { className?: string }) {
-  const { data: candidatures, isLoading } = useRecentApplications(21);
+export default function RecentCustomers({ className, editionId }: { className?: string; editionId?: number }) {
+  const { data: candidatures, isLoading } = useRecentApplications(21, editionId);
 
   // S'assurer que les données sont un tableau
   const tableData = useMemo(() => {

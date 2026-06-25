@@ -78,6 +78,9 @@ export interface MPMEFilters {
   limit?:            number;
   search?:           string;
 
+  // Édition COPA
+  copaEditionId?:    number;
+
   // Statut & catégorie
   statusId?:         string;
   statusCode?:       string;

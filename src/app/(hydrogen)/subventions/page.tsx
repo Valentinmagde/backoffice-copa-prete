@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import PageHeader from '@/app/shared/page-header';
 import { routes } from '@/config/routes';
 import SubventionsTable from '@/app/shared/subventions/subventions-table';
 import { useSubventionStats } from '@/lib/api/hooks/use-subventions';
+import CohortSelect from '@/app/shared/cohorts/cohort-select';
 
 const pageHeader = {
   title: 'Gestion des subventions',
@@ -13,8 +15,8 @@ const pageHeader = {
   ],
 };
 
-function StatsBar() {
-  const { data: stats } = useSubventionStats();
+function StatsBar({ editionId }: { editionId?: number }) {
+  const { data: stats } = useSubventionStats(editionId);
   if (!stats) return null;
 
   const fmtBIF = (n: number) => Number(n).toLocaleString('fr-FR') + ' BIF';
@@ -36,11 +38,17 @@ function StatsBar() {
 }
 
 export default function SubventionsPage() {
+  const [editionId, setEditionId] = useState<number | undefined>(undefined);
+
   return (
     <div className="@container">
-      <PageHeader title={pageHeader.title} breadcrumb={pageHeader.breadcrumb} />
-      <StatsBar />
-      <SubventionsTable />
+      <PageHeader title={pageHeader.title} breadcrumb={pageHeader.breadcrumb}>
+        <div className="mt-4 @lg:mt-0">
+          <CohortSelect value={editionId} onChange={setEditionId} />
+        </div>
+      </PageHeader>
+      <StatsBar editionId={editionId} />
+      <SubventionsTable editionId={editionId} />
     </div>
   );
 }

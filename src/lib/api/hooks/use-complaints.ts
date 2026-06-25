@@ -4,14 +4,14 @@ import toast from 'react-hot-toast';
 
 const keys = {
   all: () => ['complaints'] as const,
-  list: () => ['complaints', 'list'] as const,
+  list: (editionId?: number) => ['complaints', 'list', editionId ?? null] as const,
   detail: (id: number) => ['complaints', 'detail', id] as const,
 };
 
-export function useComplaints() {
+export function useComplaints(editionId?: number) {
   return useQuery({
-    queryKey: keys.list(),
-    queryFn: () => complaintApi.getAll(),
+    queryKey: keys.list(editionId),
+    queryFn: () => complaintApi.getAll(editionId),
   });
 }
 

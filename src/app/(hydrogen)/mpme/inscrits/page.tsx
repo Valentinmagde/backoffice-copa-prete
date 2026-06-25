@@ -13,6 +13,7 @@ import MPMEInscritsTable from '@/app/shared/mpme/inscrits/mpme-inscrits-table';
 import { MPMEFilters } from '@/lib/api/types/mpme.types';
 import ExportColumnsSelector from '@core/components/export-columns-selector';
 import { exportToCSV } from '@core/utils/export-to-csv-2';
+import CohortSelect from '@/app/shared/cohorts/cohort-select';
 
 const pageHeader = {
   title: 'MPME Inscrits',
@@ -60,7 +61,7 @@ export default function MPMEInscritsPage() {
     ...filters,
   });
 
-  const { data: data2} = useMPMEInscrits({page:   1, limit:  3000});
+  const { data: data2} = useMPMEInscrits({page:   1, limit:  3000, ...filters});
   
   const exportData = data2?.data || [];
 
@@ -86,6 +87,10 @@ export default function MPMEInscritsPage() {
     <>
       <PageHeader title={pageHeader.title} breadcrumb={pageHeader.breadcrumb}>
         <div className="mt-4 flex items-center gap-3 @lg:mt-0">
+          <CohortSelect
+            value={filters.copaEditionId}
+            onChange={(copaEditionId) => handleFilterChange({ copaEditionId })}
+          />
           <ExportColumnsSelector
             columns={EXPORT_COLUMNS}
             defaultSelected={DEFAULT_EXPORT_COLUMNS}

@@ -35,10 +35,10 @@ const COULEURS = {
 // Ordre correct des jours (lundi à dimanche)
 const ORDRE_JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
-export default function Forecast({ className }: { className?: string }) {
+export default function Forecast({ className, editionId }: { className?: string; editionId?: number }) {
   const isTablet = useMedia('(max-width: 800px)', false);
   const [periode, setPeriode] = useState('month');
-  const { data: donneesTendance, isLoading } = useRegistrationTrendByPeriod(periode);
+  const { data: donneesTendance, isLoading } = useRegistrationTrendByPeriod(periode, editionId);
 
   // Tous les hooks appelés avant tout return conditionnel
   const donneesGraphique = useMemo(() => {

@@ -30,12 +30,12 @@ const formaterValeur = (valeur: number | undefined | null): string => {
   return valeur.toLocaleString();
 };
 
-export default function ActiveUsers({ className }: { className?: string }) {
+export default function ActiveUsers({ className, editionId }: { className?: string; editionId?: number }) {
   const [ref, { width }] = useElementSize();
   const [isLoading, setLoading] = useState(true);
   const [zoom, setZoom] = useState(1);
   const isMobile = useMedia('(max-width: 768px)', false);
-  const { data: regions, isLoading: regionsLoading } = useRegionalInscriptions();
+  const { data: regions, isLoading: regionsLoading } = useRegionalInscriptions(editionId);
 
   useEffect(() => {
     const timer = setTimeout(() => {

@@ -72,8 +72,8 @@ function CustomLabel(props: any) {
     );
 }
 
-export default function CompanyStatusAnalysis({ className }: { className?: string }) {
-    const { data: analyse, isLoading } = useCompanyStatusAnalysis();
+export default function CompanyStatusAnalysis({ className, editionId }: { className?: string; editionId?: number }) {
+    const { data: analyse, isLoading } = useCompanyStatusAnalysis(editionId);
 
     if (isLoading || !analyse) {
         return (

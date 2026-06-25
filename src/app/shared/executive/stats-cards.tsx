@@ -15,10 +15,11 @@ import TicketIcon from '@core/components/icons/ticket';
 
 interface StatsCardsProps {
   className?: string;
+  editionId?: number;
 }
 
-export default function StatsCards({ className }: StatsCardsProps) {
-  const { data: stats, isLoading } = useDashboardStats();
+export default function StatsCards({ className, editionId }: StatsCardsProps) {
+  const { data: stats, isLoading } = useDashboardStats(editionId);
 
   if (isLoading || !stats) {
     return (

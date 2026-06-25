@@ -60,10 +60,12 @@ export interface Evaluation {
     verifiedFundingAmount?: number | null;
     verifiedTotalProjectCost?: number | null;
     copaEdition?: { id: number; name: string };
+    documentUrl?: string | null;
     beneficiary?: {
       id: number;
       applicationCode?: string | null;
       category?: string;
+      status?: { code: string; name: string; nameFr?: string } | null;
       maritalStatus?: string | null;
       educationLevel?: string | null;
       position?: string | null;

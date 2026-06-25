@@ -3,21 +3,21 @@ import { subventionApi } from '../endpoints/subvention.api';
 import toast from 'react-hot-toast';
 
 const keys = {
-  all: () => ['subventions'] as const,
+  all: (editionId?: number) => ['subventions', editionId ?? null] as const,
   detail: (id: number) => ['subventions', id] as const,
-  stats: () => ['subventions', 'stats'] as const,
+  stats: (editionId?: number) => ['subventions', 'stats', editionId ?? null] as const,
 };
 
-export function useSubventions() {
-  return useQuery({ queryKey: keys.all(), queryFn: () => subventionApi.getAll() });
+export function useSubventions(editionId?: number) {
+  return useQuery({ queryKey: keys.all(editionId), queryFn: () => subventionApi.getAll(editionId) });
 }
 
 export function useSubvention(id: number) {
   return useQuery({ queryKey: keys.detail(id), queryFn: () => subventionApi.getById(id), enabled: !!id });
 }
 
-export function useSubventionStats() {
-  return useQuery({ queryKey: keys.stats(), queryFn: () => subventionApi.getStats() });
+export function useSubventionStats(editionId?: number) {
+  return useQuery({ queryKey: keys.stats(editionId), queryFn: () => subventionApi.getStats(editionId) });
 }
 
 export function useApproveTranche(subventionId: number) {

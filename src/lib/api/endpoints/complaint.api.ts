@@ -4,8 +4,9 @@ import type { Complaint } from '../types/complaint.types';
 class ComplaintApi {
   private readonly base = '/complaints';
 
-  async getAll(): Promise<Complaint[]> {
-    return apiClient.get<Complaint[]>(this.base);
+  async getAll(editionId?: number): Promise<Complaint[]> {
+    const qs = editionId ? `?editionId=${editionId}` : '';
+    return apiClient.get<Complaint[]>(`${this.base}${qs}`);
   }
 
   async getById(id: number): Promise<Complaint> {

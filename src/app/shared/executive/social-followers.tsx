@@ -17,13 +17,13 @@ import { CustomYAxisTick } from '@core/components/charts/custom-yaxis-tick';
 import { useMedia } from '@core/hooks/use-media';
 import { useCandidatesBySector } from '@/lib/api/hooks/use-dashboard';
 
-export default function SocialFollowers({ className }: { className?: string }) {
+export default function SocialFollowers({ className, editionId }: { className?: string; editionId?: number }) {
   const isSM = useMedia('(max-width: 640px)', false);
   const isMobile = useMedia('(max-width: 767px)', false);
   const isTab = useMedia('(min-width: 768px)', false);
   const isLg = useMedia('(min-width: 1024px)', false);
   const is2XL = useMedia('(min-width: 1780px)', false);
-  const { data: secteurs, isLoading } = useCandidatesBySector();
+  const { data: secteurs, isLoading } = useCandidatesBySector(editionId);
 
   if (isLoading || !secteurs) {
     return (

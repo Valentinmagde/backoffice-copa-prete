@@ -27,8 +27,8 @@ const formaterValeur = (valeur: number | undefined | null): string => {
   return valeur.toLocaleString();
 };
 
-export default function MRRReport({ className }: { className?: string }) {
-  const { data: analyse, isLoading } = useGenderCategoryAnalysis();
+export default function MRRReport({ className, editionId }: { className?: string; editionId?: number }) {
+  const { data: analyse, isLoading } = useGenderCategoryAnalysis(editionId);
   const isSM = useMedia('(max-width: 640px)', false);
 
   if (isLoading) {

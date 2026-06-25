@@ -171,9 +171,16 @@ class ApiClient {
       ...axiosOptions
     } = options;
 
+    // La clé de cache doit inclure les query params : sinon deux appels au
+    // même endpoint avec des params différents (ex: editionId) se renvoient
+    // mutuellement le résultat caché de l'autre.
+    const cacheKey = axiosOptions.params
+      ? `${url}?${JSON.stringify(axiosOptions.params)}`
+      : url;
+
     // Vérifier le cache
     if (!skipCache && axiosOptions.method === 'GET') {
-      const cached = cacheManager.get<T>(url);
+      const cached = cacheManager.get<T>(cacheKey);
       if (cached) return cached;
     }
 
@@ -195,7 +202,7 @@ class ApiClient {
 
       // Mettre en cache
       if (!skipCache && axiosOptions.method === 'GET') {
-        cacheManager.set(url, data, cacheTTL);
+        cacheManager.set(cacheKey, data, cacheTTL);
       }
 
       return data;
