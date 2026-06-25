@@ -69,6 +69,11 @@ class EvaluateurApi {
     return apiClient.get<Blob>(`${this.base}/export/dossiers${params}`, {
       responseType: 'blob',
       skipCache: true,
+      // Génération lourde (Excel + téléchargements S3 par candidat) qui peut
+      // largement dépasser le timeout global de 30s — sans cette surcharge,
+      // axios abandonne la requête côté client (aucune réponse reçue) bien
+      // avant que le serveur ait fini de streamer le zip.
+      timeout: 10 * 60 * 1000,
     });
   }
 
