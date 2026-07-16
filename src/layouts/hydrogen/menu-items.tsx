@@ -6,10 +6,9 @@ import {
   PiChatCenteredDotsDuotone,
   PiClipboardTextDuotone,
   PiEnvelopeSimpleDuotone,
+  PiFilePdf,
   PiFolderLockDuotone,
   PiHouseLineDuotone,
-  PiListChecksDuotone,
-  PiTableDuotone,
   PiUserCircleDuotone,
   PiWarningDuotone,
 } from 'react-icons/pi';
@@ -58,7 +57,7 @@ export const menuItems: MenuItem[] = [
         allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'TRAINER', 'MENTOR', 'PARTNER'],
       },
       {
-        name: 'Notifications',
+        name: 'Notifications candidats',
         href: routes.mpme.notifications.list,
         allowedRoles: ['SUPER_ADMIN', 'ADMIN'],
       },
@@ -66,26 +65,37 @@ export const menuItems: MenuItem[] = [
   },
   {
     name: "Plans d'affaires",
-    href: routes.businessPlans.list,
+    href: '#',
     icon: <PiClipboardTextDuotone />,
-    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER'],
-  },
-  {
-    name: 'Évaluation',
-    href: routes.evaluation.search,
-    icon: <PiListChecksDuotone />,
-    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'EVALUATOR'],
-  },
-  {
-    name: 'Toutes les notes',
-    href: routes.evaluation.all,
-    icon: <PiTableDuotone />,
-    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER'],
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER', 'EVALUATOR'],
+    dropdownItems: [
+      {
+        name: 'Liste des plans',
+        href: routes.businessPlans.list,
+        allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER'],
+      },
+      {
+        name: 'Évaluation',
+        href: routes.evaluation.search,
+        allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'EVALUATOR'],
+      },
+      {
+        name: 'Toutes les notes',
+        href: routes.evaluation.all,
+        allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'COPA_MANAGER'],
+      },
+    ],
   },
   {
     name: 'Cohortes',
     href: routes.cohorts.list,
     icon: <PiCalendar />,
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN'],
+  },
+  {
+    name: 'Documents téléchargeables',
+    href: routes.publicDocuments.list,
+    icon: <PiFilePdf />,
     allowedRoles: ['SUPER_ADMIN', 'ADMIN'],
   },
   // {

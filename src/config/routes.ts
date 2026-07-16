@@ -60,6 +60,9 @@ export const routes = {
     edit: (id: number | string) => `/cohorts/${id}/edit`,
     create: '/cohorts/create',
   },
+  publicDocuments: {
+    list: '/public-documents',
+  },
   settings: {
     rolesPermissions: '/settings/roles-permissions',
     profile: '/settings/profile',
