@@ -14,6 +14,7 @@ import { getDateRangeStateValues } from '@core/utils/get-formatted-date';
 import type { MPMEFilters } from '@/lib/api/types/mpme.types';
 import { useProvinces, useStatusByEntity } from '@/lib/api/hooks/use-reference';
 import { getStatusBadge } from '@core/components/table-utils/get-status-badge';
+import { PROJECT_SECTOR_OPTIONS } from '@/config/project-sectors';
 
 interface FiltersProps<T extends Record<string, any>> {
     table: ReactTableType<T>;
@@ -63,16 +64,7 @@ const legalStatusOptions = [
     { value: 'coop', label: 'Société Coopérative' },
 ];
 
-const sectorOptions = [
-    { value: 'agriculture', label: 'Agri-business' },
-    { value: 'milk', label: 'Agro-industrie — Lait' },
-    { value: 'poultry', label: 'Agro-industrie — Volaille' },
-    { value: 'fish', label: 'Agro-industrie — Pisciculture' },
-    { value: 'tropicalFruit', label: 'Agro-industrie — Fruits tropicaux' },
-    { value: 'mining', label: 'Industrie minière' },
-    { value: 'tourism', label: `Services connexes à l'agri-business (y compris le tourisme et le numérique)` },
-    { value: 'other', label: 'Agro-industrie — Autres secteurs à fort potentiel' },
-];
+const sectorOptions = PROJECT_SECTOR_OPTIONS;
 
 const amountRangeOptions = [
     { value: '0-1000000', label: '< 1 000 000 BIF' },

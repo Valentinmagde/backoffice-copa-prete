@@ -5,6 +5,7 @@ import { Loader, Text, Badge } from 'rizzui';
 import FormGroup from '@/app/shared/form-group';
 import { useMPMECandidature } from '@/lib/api/hooks/use-mpme';
 import { PiLightbulb, PiUsers, PiMoney } from 'react-icons/pi';
+import { PROJECT_SECTOR_LABELS } from '@/config/project-sectors';
 
 function InfoRow({ label, value }: { label: string; value?: any }) {
   return (
@@ -24,18 +25,9 @@ export default function ProjetPage({ params }: { params: Promise<{ id: string }>
   const p = b?.project;
 
   const sectorMap = (sector?: string) => {
-    switch (sector) {
-      case 'agriculture': return 'Agri-business';
-      case 'milk': return 'Agro-industrie — Lait';
-      case 'poultry': return 'Agro-industrie — Volaille';
-      case 'fish': return 'Agro-industrie — Pisciculture';
-      case 'tropicalFruit': return 'Agro-industrie — Fruits tropicaux';
-      case 'otherAgro': return 'Agro-industrie — Autres secteurs à fort potentiel';
-      case 'mining': return 'Industrie minière';
-      case 'tourism': return 'Services connexes à l\'agri-business (y compris le tourisme et le numérique)';
-      case 'other': return p?.otherSector || '—';
-      default: return '—';
-    }
+    if (!sector) return '—';
+    if (sector.endsWith('_other')) return p?.otherSector || '—';
+    return PROJECT_SECTOR_LABELS[sector] ?? sector;
   };
 
   const clientScopeMap = (scope?: string) => {

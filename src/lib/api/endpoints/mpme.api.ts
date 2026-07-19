@@ -7,6 +7,7 @@ import type {
   MPMEFilters,
   MPMECandidatureDetails,
 } from '../types/mpme.types';
+import { PROJECT_SECTOR_LABELS } from '@/config/project-sectors';
 
 function toQueryString(filters: Record<string, unknown>): string {
   const params = new URLSearchParams();
@@ -153,7 +154,11 @@ class MPMEApi {
       email: beneficiary.user?.email || '--',
       phone: beneficiary.user?.phoneNumber || '--',
       projectTitle: beneficiary.projectTitle || '--',
-      projectSector: beneficiary.projectSectors?.join(', ') || beneficiary.otherSector || '--',
+      projectSector: beneficiary.projectSectors?.length
+        ? beneficiary.projectSectors
+            .map((s: string) => PROJECT_SECTOR_LABELS[s] ?? s)
+            .join(', ')
+        : beneficiary.otherSector || '--',
       requestedAmount: beneficiary.requestedSubsidyAmount || 0,
       totalProjectCost: beneficiary.totalProjectCost || 0,
       mainExpenses: beneficiary.mainExpenses || '--',

@@ -4,6 +4,7 @@ import { Loader, Text, Badge } from 'rizzui';
 import { PiWarning } from 'react-icons/pi';
 import { useBusinessPlanById } from '@/lib/api/hooks/use-business-plan';
 import FormGroup from '@/app/shared/form-group';
+import { PROJECT_SECTOR_LABELS } from '@/config/project-sectors';
 
 const fmtDate = (d?: string | null) =>
   d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : null;
@@ -14,19 +15,7 @@ const fmtAmount = (n?: number | null) =>
 const fmtUSD = (n?: number | null) =>
   n != null ? `${Number(n).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD` : null;
 
-const sectorMap = (sector: string) => {
-  switch (sector) {
-    case 'agriculture': return 'Agri-business';
-    case 'milk': return 'Agro-industrie — Lait';
-    case 'poultry': return 'Agro-industrie — Volaille';
-    case 'fish': return 'Agro-industrie — Pisciculture';
-    case 'tropicalFruit': return 'Agro-industrie — Fruits tropicaux';
-    case 'otherAgro': return "Agro-industrie — Autres secteurs à fort potentiel";
-    case 'mining': return 'Industrie minière';
-    case 'tourism': return "Services connexes à l'agri-business (y compris le tourisme et le numérique)";
-    default: return sector;
-  }
-};
+const sectorMap = (sector: string) => PROJECT_SECTOR_LABELS[sector] ?? sector;
 
 function InfoRow({ label, value }: { label: string; value?: any }) {
   if (value == null || value === '') return null;
