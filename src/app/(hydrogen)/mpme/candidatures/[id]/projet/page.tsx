@@ -5,7 +5,7 @@ import { Loader, Text, Badge } from 'rizzui';
 import FormGroup from '@/app/shared/form-group';
 import { useMPMECandidature } from '@/lib/api/hooks/use-mpme';
 import { PiLightbulb, PiUsers, PiMoney } from 'react-icons/pi';
-import { PROJECT_SECTOR_LABELS } from '@/config/project-sectors';
+import { PROJECT_SECTOR_LABELS, PROJECT_SECTOR_OTHER_VALUE } from '@/config/project-sectors';
 
 function InfoRow({ label, value }: { label: string; value?: any }) {
   return (
@@ -26,7 +26,7 @@ export default function ProjetPage({ params }: { params: Promise<{ id: string }>
 
   const sectorMap = (sector?: string) => {
     if (!sector) return '—';
-    if (sector.endsWith('_other')) return p?.otherSector || '—';
+    if (sector === PROJECT_SECTOR_OTHER_VALUE) return p?.otherSector || '—';
     return PROJECT_SECTOR_LABELS[sector] ?? sector;
   };
 

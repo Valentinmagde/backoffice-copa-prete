@@ -25,7 +25,6 @@ export const PROJECT_SECTOR_GROUPS: {
       { value: 'agri_fishFarming', label: 'Pisciculture' },
       { value: 'agri_tuber', label: 'Tubercule' },
       { value: 'agri_poultry', label: 'Volaille' },
-      { value: 'agri_other', label: 'Autre sous-secteur/A préciser' },
     ],
   },
   {
@@ -36,7 +35,6 @@ export const PROJECT_SECTOR_GROUPS: {
       { value: 'mining_gold', label: 'Or' },
       { value: 'mining_3tMinerals', label: 'Minerais 3T (Étain, Tungstène, Tantale)' },
       { value: 'mining_rareEarths', label: 'Terres rares' },
-      { value: 'mining_other', label: 'Autre sous-secteur/A préciser' },
     ],
   },
   {
@@ -48,7 +46,6 @@ export const PROJECT_SECTOR_GROUPS: {
       { value: 'tourism_spaWellness', label: 'SPA et bien être' },
       { value: 'tourism_specializedGuide', label: 'Guide touristique spécialisé' },
       { value: 'tourism_traditionalCuisine', label: 'Restauration valorisant les mets traditionnels' },
-      { value: 'tourism_other', label: 'Autre sous-secteur/A préciser' },
     ],
   },
   {
@@ -58,15 +55,22 @@ export const PROJECT_SECTOR_GROUPS: {
       { value: 'tech_plantSensors', label: 'Capteur et santé des plantes' },
       { value: 'tech_plantCareTech', label: 'Technologie entretien des plantes' },
       { value: 'tech_weatherTraceability', label: 'Technologie météo & traçabilité' },
-      { value: 'tech_other', label: 'Autre sous-secteur/A préciser' },
     ],
   },
 ];
 
-export const PROJECT_SECTOR_LABELS: Record<string, string> = Object.fromEntries(
-  PROJECT_SECTOR_GROUPS.flatMap((g) => g.items.map((i) => [i.value, i.label])),
-);
+export const PROJECT_SECTOR_OTHER_VALUE = 'other';
 
-export const PROJECT_SECTOR_OPTIONS = PROJECT_SECTOR_GROUPS.flatMap((g) =>
-  g.items.map((i) => ({ value: i.value, label: `${g.group} — ${i.label}` })),
-);
+export const PROJECT_SECTOR_LABELS: Record<string, string> = {
+  ...Object.fromEntries(
+    PROJECT_SECTOR_GROUPS.flatMap((g) => g.items.map((i) => [i.value, i.label])),
+  ),
+  [PROJECT_SECTOR_OTHER_VALUE]: 'Autre secteur (non listé ci-dessus)',
+};
+
+export const PROJECT_SECTOR_OPTIONS = [
+  ...PROJECT_SECTOR_GROUPS.flatMap((g) =>
+    g.items.map((i) => ({ value: i.value, label: `${g.group} — ${i.label}` })),
+  ),
+  { value: PROJECT_SECTOR_OTHER_VALUE, label: 'Autre secteur (non listé ci-dessus)' },
+];
