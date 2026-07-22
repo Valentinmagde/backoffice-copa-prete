@@ -1,16 +1,31 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import PageHeader from '@/app/shared/page-header';
 import { routes } from '@/config/routes';
 import { MPMEFilters } from '@/lib/api/types/mpme.types';
 import { useMPMECandidatures } from '@/lib/api/hooks/use-mpme';
+import { useCohorts } from '@/lib/api/hooks/use-cohorts';
 import MPMECandidaturesTable from '@/app/shared/mpme/candidatures/mpme-candidatures-table';
 import { exportToCSV } from '@core/utils/export-to-csv-2';
 import ExportColumnsSelector from '@core/components/export-columns-selector';
 import { debounce } from 'lodash';
 import CohortSelect from '@/app/shared/cohorts/cohort-select';
+
+// Détermine l'id de la "deuxième cohorte" : les cohortes triées par ordre
+// chronologique de création (la plus ancienne en premier), on prend la 2e.
+// Ne dépend pas de l'ordre d'affichage du CohortSelect (qui trie par année
+// décroissante) ni des ids, qui peuvent différer selon l'environnement.
+function getSecondCohortId(cohorts: any[] | undefined): number | undefined {
+  if (!cohorts || cohorts.length < 2) return undefined;
+  const sorted = [...cohorts].sort((a, b) => {
+    const yearDiff = (a.year ?? 0) - (b.year ?? 0);
+    if (yearDiff !== 0) return yearDiff;
+    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+  });
+  return sorted[1]?.id;
+}
 
 const pageHeader = {
   title: 'Candidatures MPME',
@@ -213,6 +228,26 @@ export default function MPMECandidaturesPage() {
   const [filters, setFilters] = useState<Omit<MPMEFilters, 'page' | 'limit'>>(initialParams.filters);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
+  // Si l'URL initiale précisait déjà copaEditionId, on respecte ce choix
+  // explicite et on n'applique pas la cohorte par défaut.
+  const hadExplicitCohortInUrl = useRef(searchParams.get('copaEditionId') !== null);
+  const { data: cohortsData } = useCohorts();
+  const secondCohortId = useMemo(
+    () => getSecondCohortId(cohortsData?.data as any[] | undefined),
+    [cohortsData],
+  );
+
+  useEffect(() => {
+    if (
+      !hadExplicitCohortInUrl.current &&
+      filters.copaEditionId === undefined &&
+      secondCohortId !== undefined
+    ) {
+      setFilters((prev) => ({ ...prev, copaEditionId: secondCohortId }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [secondCohortId]);
+
   const { data, isLoading } = useMPMECandidatures({
     page: pagination.pageIndex + 1,
     limit: pagination.pageSize,
@@ -251,7 +286,7 @@ export default function MPMECandidaturesPage() {
   };
 
   const handleResetFilters = () => {
-    setFilters({ isProfileComplete: true });
+    setFilters({ isProfileComplete: true, copaEditionId: secondCohortId });
     setPagination(prev => ({ ...prev, pageIndex: 0 }));
   };
 
